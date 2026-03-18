@@ -177,6 +177,7 @@ const externalId = computed(() => decodeURIComponent(route.params.id as string))
 const detail = ref<AnimeDetail | null>(null)
 const pagePending = ref(true)
 const error = ref<unknown | null>(null)
+const loadedExternalId = ref<string | null>(null)
 const titleProgress = ref<EpisodeProgress[]>([])
 const displaySeasons = ref<AnimeDetail['seasons']>([])
 const seasonOptions = ref<SeasonOption[]>([])
@@ -294,12 +295,15 @@ async function hydrateClientState(): Promise<void> {
 }
 
 async function loadTitlePage(): Promise<void> {
+  const targetId = externalId.value
+
   pagePending.value = true
   error.value = null
 
   try {
-    const data = await getAnimeById(externalId.value)
+    const data = await getAnimeById(targetId)
     detail.value = data
+    loadedExternalId.value = targetId
     displaySeasons.value = data.seasons
     seasonOptions.value = data.seasonOptions
     selectedTranslationId.value = data.translation.id
@@ -311,9 +315,11 @@ async function loadTitlePage(): Promise<void> {
     }
   } catch (err) {
     error.value = err
-    detail.value = null
-    displaySeasons.value = []
-    seasonOptions.value = []
+    if (loadedExternalId.value !== targetId) {
+      detail.value = null
+      displaySeasons.value = []
+      seasonOptions.value = []
+    }
   } finally {
     pagePending.value = false
   }
@@ -364,11 +370,18 @@ if (import.meta.server) {
   await loadTitlePage()
 } else {
   onMounted(() => {
+    if (detail.value && loadedExternalId.value === externalId.value) {
+      void hydrateClientState()
+      return
+    }
+
     void loadTitlePage()
   })
 }
 
-watch(externalId, () => {
+watch(externalId, (nextId, prevId) => {
+  if (nextId === prevId || nextId === loadedExternalId.value) return
+
   if (import.meta.client) {
     void loadTitlePage()
   }

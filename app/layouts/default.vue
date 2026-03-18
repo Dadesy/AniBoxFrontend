@@ -6,9 +6,13 @@
     <main class="pt-[104px] sm:pt-16">
       <slot />
     </main>
+
+    <!-- Gamification toasts (level-up, achievements, EXP gains) -->
+    <LevelUpToast />
   </div>
 </template>
 
 <script setup lang="ts">
 import AppHeader from '~/components/AppHeader.vue';
+import LevelUpToast from '~/components/gamification/LevelUpToast.vue';
 </script>

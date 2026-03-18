@@ -6,6 +6,8 @@
  */
 
 import type { EpisodeProgress, SaveProgressPayload } from '~/types/content';
+import type { SaveProgressResponse } from '~/types/gamification';
+import { useGamification } from '~/composables/useGamification';
 
 const SAVE_INTERVAL_MS = 15_000; // 15 секунд
 const MIN_SAVE_TIME = 5;         // не сохранять если смотрел < 5 секунд
@@ -13,6 +15,7 @@ const MIN_SAVE_TIME = 5;         // не сохранять если смотр�
 export const useWatchProgress = () => {
   const { isAuthenticated } = useAuth();
   const apiUrl = useApiUrl();
+  const { processExpResult } = useGamification();
 
   // ── State ─────────────────────────────────────────────────────────────────
   const currentProgress = ref<EpisodeProgress | null>(null);
@@ -28,11 +31,14 @@ export const useWatchProgress = () => {
 
     isSaving.value = true;
     try {
-      await $fetch(`${apiUrl}/progress`, {
+      const res = await $fetch<SaveProgressResponse>(`${apiUrl}/progress`, {
         method: 'POST',
         body: payload,
         credentials: 'include',
       });
+      if (res?.expResult) {
+        processExpResult(res.expResult);
+      }
     } catch (error) {
       console.warn('[useWatchProgress] save failed:', error);
     } finally {

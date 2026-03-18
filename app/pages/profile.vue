@@ -21,7 +21,8 @@
             </div>
             <div class="avatar-overlay">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
               </svg>
             </div>
           </button>
@@ -41,11 +42,25 @@
 
         <button class="logout-btn" :class="{ pending: logoutPending }" @click="handleLogout">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
           </svg>
           Выйти
         </button>
       </div>
+
+      <!-- ── Level & Progress ──────────────────────────────────────────────── -->
+      <section class="profile-section">
+        <h2 class="section-title">Уровень и прогресс</h2>
+
+        <div v-if="gamLoading" class="level-skeleton" />
+        <LevelCard
+          v-else-if="levelProgress"
+          :progress="levelProgress"
+          class="level-card-instance"
+        />
+      </section>
 
       <!-- Stats -->
       <section class="profile-section">
@@ -53,11 +68,19 @@
         <ProfileStatsCards :stats="stats" :loading="statsLoading" />
       </section>
 
+      <!-- ── Achievements ─────────────────────────────────────────────────── -->
+      <section class="profile-section">
+        <h2 class="section-title">Достижения</h2>
+        <AchievementList
+          :achievements="achievements"
+          :loading="achievLoading"
+        />
+      </section>
+
       <!-- Continue watching -->
       <section class="profile-section">
         <h2 class="section-title">Продолжить просмотр</h2>
 
-        <!-- Empty state -->
         <div v-if="!loading && continueWatching.length === 0" class="empty-state">
           <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
             <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
@@ -136,13 +159,16 @@
 import ProfileStatsCards from '~/components/profile/StatsCards.vue'
 import ProfileHistoryList from '~/components/profile/HistoryList.vue'
 import ProfileAvatarPicker from '~/components/profile/AvatarPicker.vue'
+import LevelCard from '~/components/gamification/LevelCard.vue'
+import AchievementList from '~/components/gamification/AchievementList.vue'
 import { useProfile } from '~/composables/useProfile'
+import { useGamification } from '~/composables/useGamification'
 import type { EpisodeProgress } from '~/types/content'
 import { PRESET_AVATAR_SEEDS } from '~/types/user'
 
 definePageMeta({ middleware: 'auth' })
 
-const { user, logout } = useAuth()
+const { logout } = useAuth()
 
 const {
   profile,
@@ -160,10 +186,18 @@ const {
   uploadAvatar,
 } = useProfile()
 
+const {
+  levelProgress,
+  achievements,
+  loading: gamLoading,
+  achievLoading,
+  fetchLevelProgress,
+  fetchAchievements,
+} = useGamification()
+
 const showAvatarPicker = ref(false)
 const logoutPending    = ref(false)
 
-// Determine which preset is currently active
 const currentPresetId = computed<string | null>(() => {
   if (!profile.value || profile.value.avatarType !== 'preset' || !profile.value.avatarUrl) return null
   const found = PRESET_AVATAR_SEEDS.find(p => profile.value!.avatarUrl!.includes(`seed=${encodeURIComponent(p.seed)}`))
@@ -171,7 +205,11 @@ const currentPresetId = computed<string | null>(() => {
 })
 
 // ── Init ─────────────────────────────────────────────────────────────────────
-onMounted(() => { init() })
+onMounted(() => {
+  init()
+  fetchLevelProgress()
+  fetchAchievements()
+})
 
 // ── Avatar ───────────────────────────────────────────────────────────────────
 async function onSelectPreset(presetId: string): Promise<void> {
@@ -332,9 +370,9 @@ function formatDate(dateStr: string): string {
 }
 
 .badge-user {
-  background: rgba(var(--color-primary-rgb, 34 197 94) / .12);
+  background: rgba(34,197,94,.12);
   color: var(--color-primary, #22c55e);
-  border: 1px solid rgba(var(--color-primary-rgb, 34 197 94) / .2);
+  border: 1px solid rgba(34,197,94,.2);
 }
 
 .badge-light {
@@ -363,6 +401,19 @@ function formatDate(dateStr: string): string {
 }
 
 .logout-btn.pending { opacity: .6; pointer-events: none; }
+
+/* Level card skeleton */
+.level-skeleton {
+  height: 110px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.04);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .5; }
+}
 
 /* Section */
 .profile-section { display: flex; flex-direction: column; gap: 16px; }
