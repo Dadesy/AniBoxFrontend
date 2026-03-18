@@ -22,8 +22,7 @@ ENV NPM_CONFIG_AUDIT=false \
 FROM base AS deps
 
 COPY package.json ./
-RUN --mount=type=cache,id=nuxt-npm-cache,target=/root/.npm \
-    npm install --package-lock=false
+RUN npm install --package-lock=false
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 2 — development: полный набор зависимостей для локальной разработки
@@ -31,8 +30,7 @@ RUN --mount=type=cache,id=nuxt-npm-cache,target=/root/.npm \
 FROM base AS development
 
 COPY package.json ./
-RUN --mount=type=cache,id=nuxt-npm-cache-dev,target=/root/.npm \
-    npm install --package-lock=false
+RUN npm install --package-lock=false
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 3 — builder
