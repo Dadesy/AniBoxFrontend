@@ -10,5 +10,8 @@ services:
     environment:
       NODE_ENV: production
       NUXT_PUBLIC_API_URL: ${NUXT_PUBLIC_API_URL:-http://localhost:8080/api}
+      # Internal URL used by the SSR server to reach the backend without going
+      # through the public internet. Falls back to NUXT_PUBLIC_API_URL if unset.
+      NUXT_API_URL_INTERNAL: ${NUXT_API_URL_INTERNAL:-http://127.0.0.1:8080/api}
     ports:
       - "3000:3000"

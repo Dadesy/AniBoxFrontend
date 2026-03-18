@@ -74,7 +74,7 @@
                 {{ detail.description }}
               </p>
 
-              <div class="flex items-center gap-3 pt-1">
+              <div class="flex flex-wrap items-center gap-3 pt-1">
                 <button
                   class="glow-green-sm flex items-center gap-2 rounded-xl bg-green-500 px-6 py-2.5 text-sm font-bold text-black transition-all hover:bg-green-400"
                   @click="handleWatch"
@@ -82,6 +82,17 @@
                   <UIcon name="lucide:play" class="ml-0.5 size-4" />
                   {{ continueProgress ? 'Продолжить' : 'Смотреть' }}
                 </button>
+
+                <!-- Library actions -->
+                <AddToListButton
+                  :anime-id="externalId"
+                  :title="detail.title"
+                  :title-ru="detail.titleRu"
+                  :poster-url="detail.posterUrl"
+                  :content-type="detail.type"
+                  :year="detail.year"
+                />
+
                 <a
                   v-if="detail.kinopoiskId"
                   :href="`https://www.kinopoisk.ru/film/${detail.kinopoiskId}/`"
@@ -148,8 +159,10 @@
 
 <script setup lang="ts">
 import RelatedCard from '~/components/content/RelatedCard.vue'
+import AddToListButton from '~/components/library/AddToListButton.vue'
 import { loadAnimePreferences, saveAnimePreferences } from '~/composables/useAnimePreferences'
 import { getAnimeById, getEpisodes, findSeason } from '~/services/animeService'
+import { useLibrary } from '~/composables/useLibrary'
 import type { AnimeDetail, EpisodeProgress, SeasonOption } from '~/types/content'
 
 // Viewing order relation priority: prequels first, then main, then sequels/OVAs
@@ -173,6 +186,8 @@ const RELATION_ORDER: Record<string, number> = {
 const route = useRoute()
 const router = useRouter()
 const externalId = computed(() => decodeURIComponent(route.params.id as string))
+
+const { fetchEntry } = useLibrary()
 
 const detail = ref<AnimeDetail | null>(null)
 const pagePending = ref(true)
@@ -312,6 +327,8 @@ async function loadTitlePage(): Promise<void> {
 
     if (import.meta.client) {
       await hydrateClientState()
+      // Pre-warm the library entry cache so buttons show correct state instantly
+      fetchEntry(targetId).catch(() => { /* non-critical */ })
     }
   } catch (err) {
     error.value = err
@@ -370,7 +387,15 @@ if (import.meta.server) {
   await loadTitlePage()
 } else {
   onMounted(() => {
-    if (detail.value && loadedExternalId.value === externalId.value) {
+    // detail.value being set means SSR already loaded data for this route.
+    // loadedExternalId is a plain ref — it is NOT serialised into the SSR payload,
+    // so it arrives as null on the client even though loadTitlePage() ran on the
+    // server.  Sync it here so the watch guard works correctly for subsequent
+    // same-component navigations, then hydrate client-only state without
+    // triggering another API call (which would fail on devices where
+    // "localhost" doesn't resolve to the dev machine).
+    if (detail.value) {
+      loadedExternalId.value = externalId.value
       void hydrateClientState()
       return
     }

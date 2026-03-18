@@ -7,12 +7,16 @@
       <slot />
     </main>
 
-    <!-- Gamification toasts (level-up, achievements, EXP gains) -->
+    <!-- Generic toasts (library actions, etc.) -->
+    <ToastContainer />
+
+    <!-- Gamification toasts (level-up flash, achievements, EXP) -->
     <LevelUpToast />
   </div>
 </template>
 
 <script setup lang="ts">
 import AppHeader from '~/components/AppHeader.vue';
+import ToastContainer from '~/components/ui/ToastContainer.vue';
 import LevelUpToast from '~/components/gamification/LevelUpToast.vue';
 </script>

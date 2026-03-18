@@ -62,6 +62,17 @@
         />
       </section>
 
+      <!-- ── My Library ────────────────────────────────────────────────── -->
+      <section class="profile-section">
+        <div class="section-header">
+          <h2 class="section-title">Моя библиотека</h2>
+          <span v-if="library?.counts.total" class="section-count">
+            {{ library.counts.total }}
+          </span>
+        </div>
+        <LibrarySection :library="library" :loading="libLoading" />
+      </section>
+
       <!-- Stats -->
       <section class="profile-section">
         <h2 class="section-title">Статистика</h2>
@@ -161,8 +172,10 @@ import ProfileHistoryList from '~/components/profile/HistoryList.vue'
 import ProfileAvatarPicker from '~/components/profile/AvatarPicker.vue'
 import LevelCard from '~/components/gamification/LevelCard.vue'
 import AchievementList from '~/components/gamification/AchievementList.vue'
+import LibrarySection from '~/components/library/LibrarySection.vue'
 import { useProfile } from '~/composables/useProfile'
 import { useGamification } from '~/composables/useGamification'
+import { useLibrary } from '~/composables/useLibrary'
 import type { EpisodeProgress } from '~/types/content'
 import { PRESET_AVATAR_SEEDS } from '~/types/user'
 
@@ -195,6 +208,12 @@ const {
   fetchAchievements,
 } = useGamification()
 
+const {
+  library,
+  libLoading,
+  fetchLibrary,
+} = useLibrary()
+
 const showAvatarPicker = ref(false)
 const logoutPending    = ref(false)
 
@@ -209,6 +228,7 @@ onMounted(() => {
   init()
   fetchLevelProgress()
   fetchAchievements()
+  fetchLibrary()
 })
 
 // ── Avatar ───────────────────────────────────────────────────────────────────
