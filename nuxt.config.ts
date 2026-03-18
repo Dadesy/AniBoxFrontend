@@ -66,6 +66,27 @@ export default defineNuxtConfig({
     apiUrlInternal: process.env.NUXT_API_URL_INTERNAL ?? process.env.NUXT_PUBLIC_API_URL ?? 'http://localhost:8080/api',
     public: {
       apiUrl: process.env.NUXT_PUBLIC_API_URL ?? 'http://localhost:8080/api',
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'https://anibox.app',
+    },
+  },
+
+  // ── Global head ─────────────────────────────────────────────────────────────
+  app: {
+    head: {
+      charset: 'utf-8',
+      viewport: 'width=device-width, initial-scale=1',
+      htmlAttrs: { lang: 'ru' },
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico', sizes: 'any' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+        { rel: 'manifest', href: '/site.webmanifest' },
+      ],
+      meta: [
+        { name: 'theme-color', content: '#0d0d10' },
+        { name: 'color-scheme', content: 'dark' },
+        { name: 'format-detection', content: 'telephone=no' },
+      ],
     },
   },
 

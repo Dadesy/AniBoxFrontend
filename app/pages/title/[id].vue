@@ -9,7 +9,7 @@
       </div>
     </div>
 
-    <div v-else-if="error || !detail" class="flex items-center justify-center pt-32">
+    <div v-else-if="!detail" class="flex items-center justify-center pt-32">
       <div class="space-y-4 text-center">
         <UIcon name="lucide:alert-circle" class="mx-auto size-14 text-red-400" />
         <p class="text-slate-400">Тайтл не найден</p>
@@ -192,7 +192,6 @@ const { fetchEntry } = useLibrary()
 const {
   data: pageData,
   pending,
-  error,
 } = await useAsyncData<AnimeDetail | null>(
   () => `anime-title:${externalId.value}`,
   () => getAnimeById(externalId.value),
@@ -380,7 +379,11 @@ function handleWatch(): void {
 watch(
   pageData,
   (data) => {
-    applyLoadedDetail(data)
+    if (data) {
+      applyLoadedDetail(data)
+    } else if (!detail.value) {
+      applyLoadedDetail(null)
+    }
 
     if (import.meta.client && data) {
       void hydrateClientState()
@@ -391,7 +394,53 @@ watch(
   { immediate: true },
 )
 
+const _siteConfig = useRuntimeConfig()
+const _siteUrl = _siteConfig.public.siteUrl
+
+const _pageTitle = computed(() =>
+  detail.value ? `${detail.value.titleRu || detail.value.title} — AniBox` : 'AniBox',
+)
+const _pageDesc = computed(() => detail.value?.description ?? '')
+const _pageImage = computed(() => detail.value?.posterUrl || `${_siteUrl}/og-image.png`)
+const _pageUrl = computed(() => `${_siteUrl}/title/${encodeURIComponent(externalId.value)}`)
+
+useSeoMeta({
+  title: _pageTitle,
+  description: _pageDesc,
+  ogTitle: _pageTitle,
+  ogDescription: _pageDesc,
+  ogImage: _pageImage,
+  ogImageWidth: 460,
+  ogImageHeight: 690,
+  ogUrl: _pageUrl,
+  ogType: 'video.other',
+  twitterTitle: _pageTitle,
+  twitterDescription: _pageDesc,
+  twitterImage: _pageImage,
+})
+
 useHead({
-  title: computed(() => (detail.value ? `${detail.value.titleRu || detail.value.title} — AniBox` : 'AniBox')),
+  link: [{ rel: 'canonical', href: _pageUrl }],
+  script: computed(() => {
+    if (!detail.value) return []
+    const isSerial = detail.value.type === 'anime-serial'
+    return [
+      {
+        type: 'application/ld+json',
+        innerHTML: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': isSerial ? 'TVSeries' : 'Movie',
+          name: detail.value.title,
+          alternateName: detail.value.titleRu,
+          description: detail.value.description,
+          image: detail.value.posterUrl,
+          url: _pageUrl.value,
+          inLanguage: 'ja',
+          ...(detail.value.year ? { datePublished: String(detail.value.year) } : {}),
+          ...(detail.value.genres?.length ? { genre: detail.value.genres } : {}),
+        }),
+      },
+    ]
+  }),
 })
 </script>

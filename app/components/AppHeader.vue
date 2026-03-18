@@ -334,13 +334,7 @@ async function goRandom(): Promise<void> {
 
 async function getRandomCardFromMetadata(): Promise<NormalizedAnimeCard | null> {
   try {
-    const data = await $fetch<HomePageData>(`${apiUrl}/metadata/home`, {
-      cache: 'no-store',
-      headers: {
-        'cache-control': 'no-cache',
-        pragma: 'no-cache',
-      },
-    });
+    const data = await $fetch<HomePageData>(`${apiUrl}/metadata/home`);
 
     const uniqueCards = new Map<string, NormalizedAnimeCard>();
     const cards = [

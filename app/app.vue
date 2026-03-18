@@ -5,3 +5,19 @@
     </NuxtLayout>
   </UApp>
 </template>
+
+<script setup lang="ts">
+const config = useRuntimeConfig()
+const siteUrl = config.public.siteUrl
+
+useSeoMeta({
+  ogSiteName: 'AniBox',
+  ogType: 'website',
+  ogImage: `${siteUrl}/og-image.png`,
+  ogImageWidth: 1200,
+  ogImageHeight: 630,
+  twitterCard: 'summary_large_image',
+  twitterImage: `${siteUrl}/og-image.png`,
+  robots: 'index, follow',
+})
+</script>

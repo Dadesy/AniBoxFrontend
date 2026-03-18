@@ -76,14 +76,7 @@ export function useHomeData() {
 
   const { data, status, error, refresh } = useAsyncData<HomePageData>(
     'metadata-home',
-    () =>
-      $fetch<HomePageData>(`${apiUrl}/metadata/home`, {
-        cache: 'no-store',
-        headers: {
-          'cache-control': 'no-cache',
-          pragma: 'no-cache',
-        },
-      }),
+    () => $fetch<HomePageData>(`${apiUrl}/metadata/home`),
     {
       default: () => ({
         hero: null,
@@ -111,14 +104,7 @@ export function useSchedule() {
 
   const { data, status, refresh } = useAsyncData<ScheduleDay[]>(
     'metadata-schedule',
-    () =>
-      $fetch<ScheduleDay[]>(`${apiUrl}/metadata/schedule`, {
-        cache: 'no-store',
-        headers: {
-          'cache-control': 'no-cache',
-          pragma: 'no-cache',
-        },
-      }),
+    () => $fetch<ScheduleDay[]>(`${apiUrl}/metadata/schedule`),
     {
       default: () => [],
     },

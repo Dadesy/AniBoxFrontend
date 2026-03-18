@@ -5,17 +5,11 @@ import type {
   Translation,
 } from '~/types/content'
 
-const noStoreOptions = {
-  cache: 'no-store' as const,
-  headers: {
-    'cache-control': 'no-cache',
-    pragma: 'no-cache',
-  },
-}
+const fetchOptions = {}
 
 export async function getAnimeById(externalId: string): Promise<AnimeDetail> {
   const apiUrl = useApiUrl()
-  return $fetch<AnimeDetail>(`${apiUrl}/anime/${encodeURIComponent(externalId)}`, noStoreOptions)
+  return $fetch<AnimeDetail>(`${apiUrl}/anime/${encodeURIComponent(externalId)}`, fetchOptions)
 }
 
 export async function getSeasons(
@@ -28,7 +22,7 @@ export async function getSeasons(
 
   return $fetch<AnimeEpisodesResponse>(
     `${apiUrl}/anime/${encodeURIComponent(externalId)}/seasons${params.size ? `?${params}` : ''}`,
-    noStoreOptions,
+    fetchOptions,
   )
 }
 
@@ -42,7 +36,7 @@ export async function getEpisodes(
 
   return $fetch<AnimeEpisodesResponse>(
     `${apiUrl}/anime/${encodeURIComponent(externalId)}/episodes${params.size ? `?${params}` : ''}`,
-    noStoreOptions,
+    fetchOptions,
   )
 }
 
@@ -50,7 +44,7 @@ export async function getTranslations(externalId: string): Promise<Translation[]
   const apiUrl = useApiUrl()
   return $fetch<Translation[]>(
     `${apiUrl}/anime/${encodeURIComponent(externalId)}/translations`,
-    noStoreOptions,
+    fetchOptions,
   )
 }
 

@@ -41,12 +41,39 @@ function sectionLink(sectionId: string): string {
 }
 
 // ── SEO ───────────────────────────────────────────────────────────────────
-useHead({
+const _siteConfig = useRuntimeConfig()
+const _siteUrl = _siteConfig.public.siteUrl
+
+const _desc = 'Бесплатный стриминг аниме онлайн. Онгоинги, популярное, новинки сезона — всё в одном месте.'
+
+useSeoMeta({
   title: 'AniBox — Смотрите аниме онлайн',
-  meta: [
+  description: _desc,
+  ogTitle: 'AniBox — Смотрите аниме онлайн',
+  ogDescription: _desc,
+  ogUrl: _siteUrl,
+  twitterTitle: 'AniBox — Смотрите аниме онлайн',
+  twitterDescription: _desc,
+})
+
+useHead({
+  link: [{ rel: 'canonical', href: _siteUrl }],
+  script: [
     {
-      name: 'description',
-      content: 'Бесплатный стриминг аниме онлайн. Онгоинги, популярное, новинки сезона — всё в одном месте.',
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'AniBox',
+        url: _siteUrl,
+        description: _desc,
+        inLanguage: 'ru',
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: `${_siteUrl}/search?q={search_term_string}`,
+          'query-input': 'required name=search_term_string',
+        },
+      }),
     },
   ],
 })
