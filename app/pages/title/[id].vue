@@ -189,10 +189,20 @@ const externalId = computed(() => decodeURIComponent(route.params.id as string))
 
 const { fetchEntry } = useLibrary()
 
-const detail = ref<AnimeDetail | null>(null)
-const pagePending = ref(true)
-const error = ref<unknown | null>(null)
-const loadedExternalId = ref<string | null>(null)
+const {
+  data: pageData,
+  pending,
+  error,
+} = await useAsyncData<AnimeDetail | null>(
+  () => `anime-title:${externalId.value}`,
+  () => getAnimeById(externalId.value),
+  {
+    watch: [externalId],
+    default: () => null,
+  },
+)
+
+const detail = ref<AnimeDetail | null>(pageData.value ?? null)
 const titleProgress = ref<EpisodeProgress[]>([])
 const displaySeasons = ref<AnimeDetail['seasons']>([])
 const seasonOptions = ref<SeasonOption[]>([])
@@ -201,8 +211,6 @@ const selectedSeason = ref(1)
 const selectedEpisode = ref(1)
 
 const { loadTitleProgress } = useWatchProgress()
-
-const pending = computed(() => pagePending.value)
 const sortedRelated = computed(() => {
   if (!detail.value?.related.length) return []
   return [...detail.value.related].sort((a, b) => {
@@ -309,37 +317,23 @@ async function hydrateClientState(): Promise<void> {
   }
 }
 
-async function loadTitlePage(): Promise<void> {
-  const targetId = externalId.value
+function applyLoadedDetail(data: AnimeDetail | null): void {
+  detail.value = data
 
-  pagePending.value = true
-  error.value = null
-
-  try {
-    const data = await getAnimeById(targetId)
-    detail.value = data
-    loadedExternalId.value = targetId
-    displaySeasons.value = data.seasons
-    seasonOptions.value = data.seasonOptions
-    selectedTranslationId.value = data.translation.id
-    selectedSeason.value = data.seasons[0]?.number ?? 1
-    selectedEpisode.value = data.seasons[0]?.episodes[0]?.number ?? 1
-
-    if (import.meta.client) {
-      await hydrateClientState()
-      // Pre-warm the library entry cache so buttons show correct state instantly
-      fetchEntry(targetId).catch(() => { /* non-critical */ })
-    }
-  } catch (err) {
-    error.value = err
-    if (loadedExternalId.value !== targetId) {
-      detail.value = null
-      displaySeasons.value = []
-      seasonOptions.value = []
-    }
-  } finally {
-    pagePending.value = false
+  if (!data) {
+    displaySeasons.value = []
+    seasonOptions.value = []
+    selectedTranslationId.value = null
+    selectedSeason.value = 1
+    selectedEpisode.value = 1
+    return
   }
+
+  displaySeasons.value = data.seasons
+  seasonOptions.value = data.seasonOptions
+  selectedTranslationId.value = data.translation.id
+  selectedSeason.value = data.seasons[0]?.number ?? 1
+  selectedEpisode.value = data.seasons[0]?.episodes[0]?.number ?? 1
 }
 
 function buildWatchUrl(
@@ -383,34 +377,19 @@ function handleWatch(): void {
   )
 }
 
-if (import.meta.server) {
-  await loadTitlePage()
-} else {
-  onMounted(() => {
-    // detail.value being set means SSR already loaded data for this route.
-    // loadedExternalId is a plain ref — it is NOT serialised into the SSR payload,
-    // so it arrives as null on the client even though loadTitlePage() ran on the
-    // server.  Sync it here so the watch guard works correctly for subsequent
-    // same-component navigations, then hydrate client-only state without
-    // triggering another API call (which would fail on devices where
-    // "localhost" doesn't resolve to the dev machine).
-    if (detail.value) {
-      loadedExternalId.value = externalId.value
+watch(
+  pageData,
+  (data) => {
+    applyLoadedDetail(data)
+
+    if (import.meta.client && data) {
       void hydrateClientState()
-      return
+      // Pre-warm the library entry cache so buttons show correct state instantly
+      fetchEntry(externalId.value).catch(() => { /* non-critical */ })
     }
-
-    void loadTitlePage()
-  })
-}
-
-watch(externalId, (nextId, prevId) => {
-  if (nextId === prevId || nextId === loadedExternalId.value) return
-
-  if (import.meta.client) {
-    void loadTitlePage()
-  }
-})
+  },
+  { immediate: true },
+)
 
 useHead({
   title: computed(() => (detail.value ? `${detail.value.titleRu || detail.value.title} — AniBox` : 'AniBox')),
