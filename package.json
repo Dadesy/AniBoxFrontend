@@ -1,0 +1,37 @@
+{
+  "name": "nuxt-app",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "cleanup": "nuxi cleanup",
+    "dev": "nuxt dev",
+    "dev:clean": "nuxi cleanup && nuxt dev",
+    "generate": "nuxt generate",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "typecheck": "nuxi typecheck"
+  },
+  "dependencies": {
+    "@fontsource-variable/public-sans": "^5.2.7",
+    "@nuxt/ui": "^4.3.0",
+    "nuxt": "^4.2.2",
+    "vue": "^3.5.26",
+    "vue-router": "^4.6.4",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@nuxt/eslint-config": "^1.12.1",
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/node": "^25.0.3",
+    "eslint": "^9.39.2",
+    "prettier": "^3.7.4",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.2.1"
+  }
+}

@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme {
+  /* ── Cinema color palette ──────────────────────────────────────── */
+  --color-cinema-base:     #08080e;
+  --color-cinema-surface:  #0d0d1a;
+  --color-cinema-card:     #111122;
+  --color-cinema-elevated: #171730;
+}
