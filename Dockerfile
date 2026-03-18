@@ -22,7 +22,7 @@ ENV NPM_CONFIG_AUDIT=false \
 FROM base AS deps
 
 COPY package.json ./
-RUN --mount=type=cache,target=/root/.npm \
+RUN --mount=type=cache,id=nuxt-npm-cache,target=/root/.npm \
     npm install --package-lock=false
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -31,7 +31,7 @@ RUN --mount=type=cache,target=/root/.npm \
 FROM base AS development
 
 COPY package.json ./
-RUN --mount=type=cache,target=/root/.npm \
+RUN --mount=type=cache,id=nuxt-npm-cache-dev,target=/root/.npm \
     npm install --package-lock=false
 
 # ─────────────────────────────────────────────────────────────────────────────
