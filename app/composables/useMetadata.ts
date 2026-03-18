@@ -28,16 +28,17 @@ export async function resolveContentCard(
 // ── Navigate to a metadata card ───────────────────────────────────────────
 
 export async function navigateToCard(card: NormalizedAnimeCard): Promise<void> {
-  if (card.externalId) {
-    await navigateTo(`/title/${encodeURIComponent(card.externalId)}`)
-    return
-  }
-
   const resolved = await resolveContentCard(card)
   if (resolved) {
     await navigateTo(`/title/${encodeURIComponent(resolved.id)}`)
     return
   }
+
+  if (card.externalId) {
+    await navigateTo(`/title/${encodeURIComponent(card.externalId)}`)
+    return
+  }
+
   // Fallback: search by title
   const q = card.titleRu || card.title
   await navigateTo(`/search?q=${encodeURIComponent(q)}`)
