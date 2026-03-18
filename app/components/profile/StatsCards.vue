@@ -1,5 +1,17 @@
 <template>
-  <div class="stats-grid">
+  <!-- Skeleton -->
+  <div v-if="loading" class="stats-grid">
+    <div v-for="i in 3" :key="i" class="stat-card">
+      <div class="skel-icon" />
+      <div class="stat-body">
+        <div class="skel-line wide" />
+        <div class="skel-line narrow" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Data -->
+  <div v-else class="stats-grid">
     <!-- Watch time -->
     <div class="stat-card">
       <div class="stat-icon">
@@ -135,5 +147,32 @@ const formattedWatchTime = computed(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Skeleton */
+.skel-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #1e1e24 25%, #25252d 50%, #1e1e24 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+.skel-line {
+  height: 14px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #1e1e24 25%, #25252d 50%, #1e1e24 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+.skel-line.wide { width: 60%; margin-bottom: 6px; }
+.skel-line.narrow { width: 80%; height: 10px; }
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 </style>

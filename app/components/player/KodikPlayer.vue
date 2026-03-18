@@ -24,7 +24,6 @@
 
 <script setup lang="ts">
 import { useKodikPlayer } from '~/composables/useKodikPlayer';
-import type { KodikEventName, KodikPlayerEvent } from '~/types/player';
 
 interface Props {
   /** Base player URL (https://kodik.info/serial/...) */
@@ -36,8 +35,6 @@ interface Props {
   episode?: number;
   /** Start position in seconds */
   startTime?: number;
-  /** Hide translation switcher inside player */
-  hideTranslations?: boolean;
   /** Aspect ratio class */
   aspect?: 'video' | 'cinema';
 }
@@ -45,7 +42,6 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   title: 'Плеер',
   aspect: 'video',
-  hideTranslations: true,
 });
 
 const emit = defineEmits<{
@@ -54,12 +50,13 @@ const emit = defineEmits<{
   (e: 'pause', time: number): void;
   (e: 'timeUpdate', time: number, duration: number): void;
   (e: 'ended'): void;
-  (e: 'episodeChange', season: number, episode: number): void;
+  (e: 'episodeChange', season: number, episode: number, translationId?: number): void;
   (e: 'seeked', time: number): void;
 }>();
 
 const iframeRef = ref<HTMLIFrameElement | null>(null);
 const loading = ref(true);
+const initializedSrc = ref<string | null>(null);
 
 const player = useKodikPlayer(iframeRef);
 
@@ -68,15 +65,7 @@ const currentSrc = computed(() => {
   let url = props.playerUrl;
   if (!url) return '';
   if (url.startsWith('//')) url = `https:${url}`;
-
-  const params = new URLSearchParams();
-  if (props.hideTranslations) params.set('translations', 'false');
-  if (props.startTime && props.startTime > 5) {
-    // Kodik doesn't support ?t= natively, we seek via postMessage after load
-  }
-
-  const query = params.toString();
-  return query ? `${url}${url.includes('?') ? '&' : '?'}${query}` : url;
+  return url;
 });
 
 // ── Seek to startTime after iframe loads ─────────────────────────────────────
@@ -84,11 +73,21 @@ function onLoad(): void {
   loading.value = false;
   emit('ready');
 
-  if (props.startTime && props.startTime > 5) {
-    // Wait for player to initialize before seeking
-    setTimeout(() => {
-      player.seek(props.startTime!);
-    }, 2000);
+  if (initializedSrc.value !== currentSrc.value) {
+    initializedSrc.value = currentSrc.value;
+
+    if (props.season != null && props.episode != null) {
+      setTimeout(() => {
+        player.changeEpisode(props.season!, props.episode!);
+      }, 1200);
+    }
+
+    if (props.startTime && props.startTime > 5) {
+      // Wait for player to initialize before seeking
+      setTimeout(() => {
+        player.seek(props.startTime!);
+      }, 2000);
+    }
   }
 }
 
@@ -100,12 +99,14 @@ onMounted(() => {
     player.on('kodik_player_play', (ev) => emit('play', ev.time ?? 0)),
     player.on('kodik_player_pause', (ev) => emit('pause', ev.time ?? 0)),
     player.on('kodik_player_time_update', (ev) =>
-      emit('timeUpdate', ev.time ?? 0, ev.duration ?? 0),
+      // ev.duration is populated from state.duration (set by kodik_player_duration_update)
+      emit('timeUpdate', ev.time ?? 0, ev.duration ?? player.state.duration),
     ),
     player.on('kodik_player_video_ended', () => emit('ended')),
     player.on('kodik_player_current_episode', (ev) => {
-      if (ev.season !== undefined && ev.episode !== undefined) {
-        emit('episodeChange', ev.season, ev.episode);
+      // season/episode can be null for movies — only emit if both are numbers
+      if (ev.season != null && ev.episode != null) {
+        emit('episodeChange', ev.season, ev.episode, ev.translation?.id);
       }
     }),
     player.on('kodik_player_seek', (ev) => emit('seeked', ev.time ?? 0)),
@@ -116,8 +117,11 @@ onBeforeUnmount(() => unsubscribers.forEach((fn) => fn()));
 
 // ── Watch for prop changes ────────────────────────────────────────────────────
 watch(
-  () => [props.playerUrl, props.season, props.episode] as const,
-  () => { loading.value = true; },
+  () => props.playerUrl,
+  () => {
+    loading.value = true;
+    initializedSrc.value = null;
+  },
 );
 
 // ── Expose player controls ────────────────────────────────────────────────────

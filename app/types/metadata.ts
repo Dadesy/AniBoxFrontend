@@ -1,6 +1,7 @@
 export interface NormalizedAnimeCard {
   id: string
-  source: 'shikimori' | 'jikan'
+  source: 'shikimori'
+  externalId?: string
   /** Relation label for related anime section (e.g. "Продолжение", "Приквел") */
   relation?: string
   title: string
@@ -15,14 +16,13 @@ export interface NormalizedAnimeCard {
   synopsis?: string
   genres?: string[]
   airedOn?: string
-  trailerId?: string
   broadcast?: { day: string; time: string }
 }
 
 export interface HomeSection {
   id: string
   title: string
-  source: 'shikimori' | 'jikan'
+  source: 'shikimori'
   items: NormalizedAnimeCard[]
 }
 
@@ -49,10 +49,7 @@ export const KIND_LABELS: KindLabel = {
 }
 
 export const STATUS_LABELS: Record<string, string> = {
-  ongoing:           'Онгоинг',
-  released:          'Вышел',
-  anons:             'Анонс',
-  'Currently Airing':'Онгоинг',
-  'Finished Airing': 'Завершён',
-  'Not yet aired':   'Анонс',
+  ongoing:  'Онгоинг',
+  released: 'Вышел',
+  anons:    'Анонс',
 }

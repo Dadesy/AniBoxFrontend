@@ -2,9 +2,10 @@
 @import "@nuxt/ui";
 
 @theme {
-  /* ── Cinema color palette ──────────────────────────────────────── */
-  --color-cinema-base:     #08080e;
-  --color-cinema-surface:  #0d0d1a;
-  --color-cinema-card:     #111122;
-  --color-cinema-elevated: #171730;
+  /* ── Cinema color palette ────────────────────────────────────────── */
+  /* Default values (dark theme). Overridden by html.light in main.css */
+  --color-cinema-base:     #0f1117;
+  --color-cinema-surface:  #13161f;
+  --color-cinema-card:     #191d2b;
+  --color-cinema-elevated: #1f2436;
 }

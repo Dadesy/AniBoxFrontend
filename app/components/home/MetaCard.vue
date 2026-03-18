@@ -10,6 +10,7 @@ const props = defineProps<{
 }>()
 
 const navigating = ref(false)
+const posterFailed = ref(false)
 
 async function handleClick() {
   if (navigating.value) return
@@ -42,9 +43,13 @@ const scoreColor   = computed(() => {
     >
       <!-- Skeleton shimmer when no poster -->
       <div
-        v-if="!card.posterUrl"
+        v-if="!card.posterUrl || posterFailed"
         class="absolute inset-0 animate-pulse bg-gradient-to-br from-white/5 to-white/10"
-      />
+      >
+        <div class="flex h-full w-full items-center justify-center">
+          <UIcon name="lucide:image-off" class="size-10 text-slate-700" />
+        </div>
+      </div>
 
       <img
         v-else
@@ -52,6 +57,7 @@ const scoreColor   = computed(() => {
         :alt="displayTitle"
         loading="lazy"
         class="h-full w-full object-cover transition-transform duration-500 ease-out will-change-transform group-hover:scale-110"
+        @error="posterFailed = true"
       />
 
       <!-- Gradient overlay (always) -->

@@ -1,34 +1,48 @@
 <template>
-  <div class="flex flex-wrap gap-1.5">
-    <button
-      v-for="t in translations"
-      :key="t.id"
-      :class="[
-        'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm transition-all border font-medium',
-        activeId === t.id
-          ? 'bg-green-500/15 text-green-400 border-green-500/30 glow-green-sm'
-          : 'bg-white/4 text-slate-400 border-white/6 hover:bg-white/8 hover:text-white',
-        compact ? 'px-2.5 py-1 text-xs' : '',
-      ]"
-      @click="emit('select', t.id)"
-    >
+  <div class="space-y-2">
+    <label class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+      Озвучка
+    </label>
+
+    <div class="relative">
       <UIcon
-        :name="t.type === 'subtitles' ? 'lucide:subtitles' : 'lucide:mic-2'"
-        :class="compact ? 'size-3' : 'size-3.5'"
+        name="lucide:chevrons-up-down"
+        class="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-slate-500"
       />
-      {{ t.title }}
-    </button>
+      <select
+        :value="activeId ?? undefined"
+        :class="[
+          'w-full appearance-none rounded-2xl border border-white/8 bg-white/5 pl-4 pr-11 text-white outline-none transition-colors focus:border-green-500/40',
+          compact ? 'py-2 text-sm font-medium' : 'py-3 text-sm font-medium',
+        ]"
+        @change="emit('select', Number(($event.target as HTMLSelectElement).value))"
+      >
+        <option
+          v-for="translation in translations"
+          :key="translation.id"
+          :value="translation.id"
+          class="bg-slate-950 text-white"
+        >
+          {{ formatTranslationLabel(translation) }}
+        </option>
+      </select>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { Translation } from '~/types/content';
+import type { Translation } from '~/types/content'
 
 defineProps<{
-  translations: Translation[];
-  activeId: number | null;
-  compact?: boolean;
-}>();
+  translations: Translation[]
+  activeId: number | null
+  compact?: boolean
+}>()
 
-const emit = defineEmits<{ (e: 'select', id: number): void }>();
+const emit = defineEmits<{ (e: 'select', id: number): void }>()
+
+function formatTranslationLabel(translation: Translation): string {
+  const suffix = translation.episodesCount ? ` · ${translation.episodesCount} эп.` : ''
+  return `${translation.title}${suffix}`
+}
 </script>

@@ -2,8 +2,8 @@
 import { PRESET_AVATAR_SEEDS, presetAvatarUrl } from '~/types/user'
 
 const props = defineProps<{
-  currentUrl: string | null
-  open: boolean
+  currentAvatarUrl: string | null
+  currentPresetId:  string | null
 }>()
 
 const emit = defineEmits<{
@@ -13,22 +13,12 @@ const emit = defineEmits<{
 }>()
 
 const tab            = ref<'presets' | 'upload'>('presets')
-const selectedId     = ref<string | null>(null)
+const selectedId     = ref<string | null>(props.currentPresetId)
 const uploading      = ref(false)
 const uploadError    = ref<string | null>(null)
 const dragOver       = ref(false)
 const previewUrl     = ref<string | null>(null)
 const fileInput      = ref<HTMLInputElement | null>(null)
-
-// Reset on open
-watch(() => props.open, (open) => {
-  if (open) {
-    selectedId.value  = null
-    uploadError.value = null
-    previewUrl.value  = null
-    tab.value         = 'presets'
-  }
-})
 
 const presets = PRESET_AVATAR_SEEDS.map((p) => ({
   id:  p.id,
@@ -100,9 +90,8 @@ async function confirmUpload() {
 
 <template>
   <Teleport to="body">
-    <Transition name="modal">
+    <Transition name="modal" appear>
       <div
-        v-if="open"
         class="fixed inset-0 z-50 flex items-center justify-center p-4"
         @click.self="emit('close')"
       >

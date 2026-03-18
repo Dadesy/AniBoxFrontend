@@ -1,3 +1,5 @@
+import type { NormalizedAnimeCard } from '~/types/metadata'
+
 // Mapped types — зеркалят backend kodik.types.ts, без import зависимости
 
 export type ContentType =
@@ -11,17 +13,32 @@ export interface Translation {
   id: number;
   title: string;
   type: 'voice' | 'subtitles';
+  episodesCount?: number;
 }
 
 export interface Episode {
   number: number;
   link: string;
+  title?: string;
+  titleJapanese?: string;
+  titleRomanji?: string;
+  airedOn?: string;
+  filler?: boolean;
+  recap?: boolean;
 }
 
 export interface Season {
   number: number;
   episodes: Episode[];
   link: string;
+  title?: string;
+  episodesCount?: number;
+}
+
+export interface SeasonOption {
+  number: number;
+  title: string;
+  episodesCount: number;
 }
 
 export interface ContentCard {
@@ -54,6 +71,20 @@ export interface ContentCard {
 export interface ContentDetail extends ContentCard {
   allTranslations: Translation[];
   seasons: Season[];
+}
+
+export interface AnimeDetail extends ContentCard {
+  allTranslations: Translation[];
+  seasons: Season[];
+  seasonOptions: SeasonOption[];
+  related: NormalizedAnimeCard[];
+}
+
+export interface AnimeEpisodesResponse {
+  translation: Translation | null;
+  seasons: Season[];
+  seasonOptions: SeasonOption[];
+  playerUrl: string;
 }
 
 export interface CatalogResponse {
@@ -114,4 +145,11 @@ export interface SaveProgressPayload {
 export interface HistoryResponse {
   items: EpisodeProgress[];
   total: number;
+}
+
+export interface AnimePreferences {
+  translationId?: number;
+  season?: number;
+  episode?: number;
+  updatedAt: number;
 }

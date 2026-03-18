@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite';
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
@@ -10,7 +11,7 @@ export default defineNuxtConfig({
       pathPrefix: false,
     },
   ],
-  colorMode: { preference: 'dark', fallback: 'dark' },
+  colorMode: { preference: 'dark', fallback: 'dark', classSuffix: '' },
   devtools: { enabled: true },
   css: [
     '@fontsource-variable/public-sans/index.css',
@@ -20,6 +21,19 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   vite: {
     plugins: [tailwindcss()],
+  },
+  hooks: {
+    'pages:extend'(pages) {
+      const hasScheduleRoute = pages.some((page) => page.path === '/schedule')
+
+      if (!hasScheduleRoute) {
+        pages.push({
+          name: 'schedule',
+          path: '/schedule',
+          file: fileURLToPath(new URL('./app/pages/schedule.vue', import.meta.url)),
+        })
+      }
+    },
   },
 
   // ── Runtime config ─────────────────────────────────────────────────────────

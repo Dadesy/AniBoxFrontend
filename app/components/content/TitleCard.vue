@@ -7,14 +7,15 @@
       <!-- Poster -->
       <div class="aspect-[2/3] w-full overflow-hidden bg-cinema-card">
         <img
-          v-if="content.posterUrl"
+          v-if="content.posterUrl && !posterFailed"
           :src="content.posterUrl"
           :alt="content.title"
           class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
+          @error="posterFailed = true"
         />
-        <div v-else class="flex h-full w-full items-center justify-center">
-          <UIcon name="lucide:film" class="size-12 text-slate-700" />
+        <div v-else class="flex h-full w-full items-center justify-center bg-gradient-to-br from-white/5 to-white/10">
+          <UIcon name="lucide:image-off" class="size-12 text-slate-700" />
         </div>
       </div>
 
@@ -58,6 +59,7 @@
 import type { ContentCard } from '~/types/content';
 
 const props = defineProps<{ content: ContentCard }>();
+const posterFailed = ref(false);
 
 const typeLabel = computed(() => {
   const map: Record<string, string> = {

@@ -1,14 +1,24 @@
 import type { HomePageData, NormalizedAnimeCard, ScheduleDay } from '~/types/metadata'
 
-// ── Shikimori ID → Kodik ID resolver ─────────────────────────────────────
+// ── Metadata card → Kodik ID resolver ────────────────────────────────────
 
-export async function resolveShikimoriId(
-  shikimoriId: string,
+export async function resolveContentCard(
+  card: NormalizedAnimeCard,
 ): Promise<{ id: string; type: string } | null> {
   try {
-    const apiUrl = useRuntimeConfig().public.apiUrl as string
+    const apiUrl = useApiUrl()
+    const params = new URLSearchParams({
+      id: card.id,
+      source: card.source,
+    })
+
+    if (card.title) params.set('title', card.title)
+    if (card.titleRu) params.set('titleRu', card.titleRu)
+    if (card.year) params.set('year', String(card.year))
+    if (card.kind) params.set('kind', card.kind)
+
     return await $fetch<{ id: string; type: string }>(
-      `${apiUrl}/content/resolve-shikimori/${shikimoriId}`,
+      `${apiUrl}/content/resolve?${params.toString()}`,
     )
   } catch {
     return null
@@ -18,9 +28,12 @@ export async function resolveShikimoriId(
 // ── Navigate to a metadata card ───────────────────────────────────────────
 
 export async function navigateToCard(card: NormalizedAnimeCard): Promise<void> {
-  // Both Shikimori IDs and Jikan/MAL IDs map to Kodik via shikimori_id
-  // because Shikimori historically mirrors MAL IDs 1:1 for most anime.
-  const resolved = await resolveShikimoriId(card.id)
+  if (card.externalId) {
+    await navigateTo(`/title/${encodeURIComponent(card.externalId)}`)
+    return
+  }
+
+  const resolved = await resolveContentCard(card)
   if (resolved) {
     await navigateTo(`/title/${encodeURIComponent(resolved.id)}`)
     return

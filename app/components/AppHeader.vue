@@ -1,152 +1,213 @@
 <template>
   <header
-    :class="[
-      'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-      scrolled
-        ? 'bg-cinema-base/90 backdrop-blur-xl border-b border-white/5 shadow-lg shadow-black/40'
-        : 'bg-transparent',
-    ]"
+    class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+    :class="scrolled ? 'header--scrolled' : 'header--top'"
   >
-    <div class="mx-auto max-w-screen-2xl px-4 sm:px-6 h-16 flex items-center gap-4">
-      <!-- Logo -->
-      <NuxtLink to="/" class="flex items-baseline gap-0.5 shrink-0 mr-2">
-        <span class="text-xl font-bold text-white">Ani</span>
-        <span class="text-xl font-bold text-green-400">Box</span>
-      </NuxtLink>
+    <!-- ─── Main row (desktop + mobile top bar) ─────────────────────── -->
+    <div class="relative h-14 sm:h-16 max-w-screen-2xl mx-auto">
 
-      <!-- Nav links -->
-      <nav class="hidden sm:flex items-center gap-1">
-        <NuxtLink
-          v-for="link in navLinks"
-          :key="link.to"
-          :to="link.to"
-          class="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors text-slate-300 hover:text-white hover:bg-white/5"
-          active-class="text-white bg-white/8"
-        >
-          {{ link.label }}
+      <!-- Left: Logo + Nav ─────────────────────────────────────── -->
+      <div class="absolute left-0 top-0 h-full flex items-center pl-4 sm:pl-6 gap-1 z-10">
+        <NuxtLink to="/" class="flex items-baseline gap-0 mr-3 shrink-0 group">
+          <span class="text-[20px] font-extrabold tracking-tight text-white">Ani</span>
+          <span class="text-[20px] font-extrabold tracking-tight text-green-400 group-hover:text-green-300 transition-colors">Box</span>
         </NuxtLink>
-      </nav>
+        <nav class="hidden sm:flex items-center gap-0.5">
+          <NuxtLink
+            v-for="link in navLinks"
+            :key="link.to"
+            :to="link.to"
+            class="px-3 py-1.5 text-[13px] font-medium rounded-lg transition-colors text-slate-400 hover:text-white hover:bg-white/5"
+            active-class="!text-white !bg-white/8"
+          >
+            {{ link.label }}
+          </NuxtLink>
+        </nav>
+      </div>
 
-      <!-- Search -->
-      <div ref="searchWrap" class="flex-1 max-w-md ml-auto relative">
-        <div class="relative">
+      <!-- Center: Search – absolute viewport-center (desktop only) ── -->
+      <div
+        ref="desktopSearchWrap"
+        class="hidden sm:flex absolute inset-y-0 left-1/2 -translate-x-1/2 items-center"
+        style="width: min(520px, calc(100vw - 420px))"
+      >
+        <div class="relative w-full">
           <UIcon
             name="lucide:search"
-            class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-500 pointer-events-none"
+            class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-500 pointer-events-none z-10"
           />
           <input
             v-model="searchQuery"
             type="text"
             placeholder="Поиск аниме..."
-            class="w-full h-9 pl-9 pr-4 rounded-xl bg-white/5 border border-white/8 text-sm text-white placeholder:text-slate-500
-                   focus:outline-none focus:bg-white/8 focus:border-green-500/40 transition-all"
+            class="search-input w-full h-9 pl-9 pr-8 rounded-xl text-[13px] text-white placeholder:text-slate-500 transition-all"
+            :class="{ 'search-input--active': searchFocused }"
             @focus="searchFocused = true"
             @keydown.enter="goSearch"
-            @keydown.escape="closeSearch"
+            @keydown.escape="closeDesktopSearch"
           />
           <button
             v-if="searchQuery"
             class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
-            @click="searchQuery = ''; searchResults = []"
+            @click="clearSearch"
           >
             <UIcon name="lucide:x" class="size-3.5" />
           </button>
-        </div>
 
-        <!-- Search dropdown -->
-        <Transition name="dropdown">
-          <div
-            v-if="showDropdown"
-            class="absolute top-full mt-2 left-0 right-0 glass rounded-xl overflow-hidden shadow-2xl shadow-black/60 z-50"
-          >
-            <!-- Loading -->
-            <div v-if="searchLoading" class="flex items-center justify-center py-6">
-              <UIcon name="lucide:loader-circle" class="size-5 text-green-400 animate-spin" />
+          <!-- Desktop search dropdown -->
+          <Transition name="search-drop">
+            <div
+              v-if="showDropdown && searchFocused"
+              class="search-dropdown absolute top-[calc(100%+6px)] left-0 right-0 z-50 rounded-2xl overflow-hidden py-1"
+            >
+            <SearchDropdownContent
+              :loading="searchLoading"
+              :results="searchResults"
+              :query="searchQuery"
+              :error="searchError"
+              @select="closeDesktopSearch"
+              @all="goSearch"
+            />
             </div>
-
-            <!-- Results -->
-            <template v-else>
-              <NuxtLink
-                v-for="item in searchResults"
-                :key="item.externalId"
-                :to="`/title/${encodeURIComponent(item.externalId)}`"
-                class="flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors"
-                @click="closeSearch"
-              >
-                <div class="w-9 h-12 shrink-0 rounded overflow-hidden bg-cinema-card">
-                  <img
-                    v-if="item.posterUrl"
-                    :src="item.posterUrl"
-                    :alt="item.title"
-                    class="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                  <div v-else class="flex h-full items-center justify-center">
-                    <UIcon name="lucide:film" class="size-4 text-slate-600" />
-                  </div>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium text-white line-clamp-1" v-html="highlight(item.title)" />
-                  <p class="text-xs text-slate-400 mt-0.5">
-                    {{ item.year }}
-                    <span v-if="item.year && item.genres.length" class="mx-1">·</span>
-                    {{ item.genres.slice(0, 2).join(', ') }}
-                  </p>
-                </div>
-                <span class="shrink-0 text-xs px-1.5 py-0.5 rounded bg-white/6 text-slate-400">
-                  {{ typeLabel(item.type) }}
-                </span>
-              </NuxtLink>
-
-              <!-- All results link -->
-              <div class="border-t border-white/5 px-4 py-2.5">
-                <button
-                  class="w-full text-left text-sm text-green-400 hover:text-green-300 transition-colors flex items-center gap-1.5"
-                  @click="goSearch"
-                >
-                  <UIcon name="lucide:search" class="size-3.5" />
-                  Все результаты для «{{ searchQuery }}»
-                </button>
-              </div>
-            </template>
-          </div>
-        </Transition>
+          </Transition>
+        </div>
       </div>
 
-      <!-- Auth -->
-      <div class="flex items-center gap-2 shrink-0">
+      <!-- Right: Actions ──────────────────────────────────────────── -->
+      <div class="absolute right-0 top-0 h-full flex items-center pr-4 sm:pr-6 gap-1 z-10">
+
+        <!-- Theme toggle -->
+        <ThemeToggle />
+
         <template v-if="isAuthenticated && user">
+          <!-- History shortcut, desktop only -->
           <NuxtLink
             to="/history"
-            class="hidden sm:flex items-center p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+            class="hidden sm:flex w-9 h-9 items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/6 transition-all"
             title="История просмотров"
           >
-            <UIcon name="lucide:clock" class="size-5" />
+            <UIcon name="lucide:clock" class="size-[18px]" />
           </NuxtLink>
-          <!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-          <UDropdownMenu :items="(userMenuItems as any)">
-            <button class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/8 border border-white/6 transition-all">
-              <div class="w-6 h-6 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center text-green-400 text-xs font-bold">
-                {{ userInitial }}
-              </div>
-              <span class="hidden md:block text-sm font-medium text-white max-w-[120px] truncate">
+
+          <!-- Profile button + custom dropdown ──────────────────── -->
+          <div ref="profileWrap" class="relative">
+            <button
+              class="flex items-center gap-2 pl-1.5 pr-2.5 h-9 rounded-xl hover:bg-white/6 border border-white/0 hover:border-white/8 transition-all"
+              :class="profileOpen ? 'bg-white/6 border-white/8' : ''"
+              @click="profileOpen = !profileOpen"
+            >
+              <UserAvatar :email="user.email" size="xs" />
+              <span class="hidden md:block text-[13px] font-medium text-white/90 max-w-[100px] truncate">
                 {{ user.email.split('@')[0] }}
               </span>
-              <UIcon name="lucide:chevron-down" class="size-3 text-slate-500" />
+              <UIcon
+                name="lucide:chevron-down"
+                class="size-3 text-slate-500 transition-transform duration-200"
+                :class="profileOpen ? 'rotate-180' : ''"
+              />
             </button>
-          </UDropdownMenu>
+
+            <Transition name="profile-drop">
+              <div
+                v-if="profileOpen"
+                class="profile-dropdown absolute right-0 top-[calc(100%+8px)] w-52 rounded-2xl overflow-hidden z-[100]"
+              >
+                <!-- User info header -->
+                <div class="px-4 py-3.5 border-b border-white/6">
+                  <p class="text-[13px] font-semibold text-white truncate">
+                    {{ user.email.split('@')[0] }}
+                  </p>
+                  <p class="text-[11px] text-slate-500 truncate mt-0.5">{{ user.email }}</p>
+                </div>
+
+                <!-- Navigation items -->
+                <nav class="py-1.5">
+                  <NuxtLink
+                    v-for="item in profileMenuItems"
+                    :key="item.to"
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 text-[13px] text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                    @click="profileOpen = false"
+                  >
+                    <UIcon :name="item.icon" class="size-4 text-slate-500 shrink-0" />
+                    {{ item.label }}
+                  </NuxtLink>
+                </nav>
+
+                <!-- Logout -->
+                <div class="border-t border-white/6 py-1.5">
+                  <button
+                    class="w-full flex items-center gap-3 px-4 py-2 text-[13px] text-red-400/80 hover:text-red-300 hover:bg-red-500/5 transition-colors"
+                    @click="handleLogout"
+                  >
+                    <UIcon name="lucide:log-out" class="size-4 shrink-0" />
+                    Выйти
+                  </button>
+                </div>
+              </div>
+            </Transition>
+          </div>
         </template>
+
         <template v-else>
-          <UButton to="/authentication" color="primary" size="sm" class="glow-green-sm">
+          <NuxtLink
+            to="/authentication"
+            class="inline-flex items-center h-9 px-4 rounded-xl bg-green-500 hover:bg-green-400 text-black text-[13px] font-semibold transition-all glow-green-sm"
+          >
             Войти
-          </UButton>
+          </NuxtLink>
         </template>
+      </div>
+    </div>
+
+    <!-- ─── Mobile search row (below main bar) ──────────────────────── -->
+    <div ref="mobileSearchWrap" class="sm:hidden px-4 pb-3">
+      <div class="relative">
+        <UIcon
+          name="lucide:search"
+          class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-500 pointer-events-none z-10"
+        />
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Поиск аниме..."
+          class="search-input w-full h-9 pl-9 pr-8 rounded-xl text-[13px] text-white placeholder:text-slate-500 transition-all"
+          :class="{ 'search-input--active': mobileSearchFocused }"
+          @focus="mobileSearchFocused = true"
+          @keydown.enter="goSearch"
+          @keydown.escape="closeMobileSearch"
+        />
+        <button
+          v-if="searchQuery"
+          class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+          @click="clearSearch"
+        >
+          <UIcon name="lucide:x" class="size-3.5" />
+        </button>
+
+        <!-- Mobile search dropdown -->
+        <Transition name="search-drop">
+          <div
+            v-if="showDropdown && mobileSearchFocused"
+            class="search-dropdown absolute top-[calc(100%+6px)] left-0 right-0 z-50 rounded-2xl overflow-hidden py-1"
+          >
+            <SearchDropdownContent
+              :loading="searchLoading"
+              :results="searchResults"
+              :query="searchQuery"
+              :error="searchError"
+              @select="closeMobileSearch"
+              @all="goSearch"
+            />
+          </div>
+        </Transition>
       </div>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
+import SearchDropdownContent from '~/components/header/SearchDropdownContent.vue';
 import type { ContentCard } from '~/types/content';
 
 const { user, isAuthenticated, isAdmin, logout } = useAuth();
@@ -156,7 +217,7 @@ const apiUrl = useApiUrl();
 // ── Scroll state ──────────────────────────────────────────────────────────
 const scrolled = ref(false);
 onMounted(() => {
-  const onScroll = () => { scrolled.value = window.scrollY > 30; };
+  const onScroll = () => { scrolled.value = window.scrollY > 20; };
   window.addEventListener('scroll', onScroll, { passive: true });
   onUnmounted(() => window.removeEventListener('scroll', onScroll));
 });
@@ -165,94 +226,178 @@ onMounted(() => {
 const navLinks = [
   { to: '/', label: 'Главная' },
   { to: '/catalog', label: 'Каталог' },
+  { to: '/schedule', label: 'Расписание' },
 ];
 
 // ── Search ────────────────────────────────────────────────────────────────
-const searchQuery = ref('');
-const searchResults = ref<ContentCard[]>([]);
-const searchLoading = ref(false);
-const searchFocused = ref(false);
-const searchWrap = ref<HTMLElement | null>(null);
+const searchQuery         = ref('');
+const searchResults       = ref<ContentCard[]>([]);
+const searchLoading       = ref(false);
+const searchError         = ref<string | null>(null);
+const searchFocused       = ref(false);
+const mobileSearchFocused = ref(false);
 
-const showDropdown = computed(
-  () => searchFocused.value && searchQuery.value.length >= 2 && (searchLoading.value || searchResults.value.length > 0),
-);
+const desktopSearchWrap = ref<HTMLElement | null>(null);
+const mobileSearchWrap  = ref<HTMLElement | null>(null);
+
+const showDropdown = computed(() => searchQuery.value.trim().length >= 2);
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 watch(searchQuery, (val) => {
   if (debounceTimer) clearTimeout(debounceTimer);
   searchResults.value = [];
-  if (val.length < 2) return;
+  searchError.value = null;
+  if (val.trim().length < 2) { searchLoading.value = false; return; }
   searchLoading.value = true;
   debounceTimer = setTimeout(async () => {
     try {
+      const query = val.trim();
       const data = await $fetch<{ items: ContentCard[] }>(
-        `${apiUrl}/content/search?q=${encodeURIComponent(val)}&limit=6`,
+        `${apiUrl}/content/search?q=${encodeURIComponent(query)}&types=anime-serial,anime&limit=6`,
       );
       searchResults.value = data.items;
+    } catch (error) {
+      console.warn('[header-search] failed to load results:', error);
+      searchResults.value = [];
+      searchError.value = 'Не удалось загрузить результаты';
     } finally {
       searchLoading.value = false;
     }
   }, 300);
 });
 
-function goSearch(): void {
-  if (!searchQuery.value.trim()) return;
-  router.push(`/search?q=${encodeURIComponent(searchQuery.value.trim())}`);
-  closeSearch();
-}
-
-function closeSearch(): void {
-  searchFocused.value = false;
+function clearSearch(): void {
   searchQuery.value = '';
   searchResults.value = [];
+  searchError.value = null;
 }
 
-// Close dropdown on outside click
+function closeDesktopSearch(): void {
+  searchFocused.value = false;
+  clearSearch();
+}
+
+function closeMobileSearch(): void {
+  mobileSearchFocused.value = false;
+  clearSearch();
+}
+
+function goSearch(): void {
+  const q = searchQuery.value.trim();
+  if (!q) return;
+  router.push(`/search?q=${encodeURIComponent(q)}`);
+  closeDesktopSearch();
+  closeMobileSearch();
+}
+
+// Close search on outside click
 onMounted(() => {
   const handler = (e: MouseEvent) => {
-    if (searchWrap.value && !searchWrap.value.contains(e.target as Node)) {
+    if (desktopSearchWrap.value && !desktopSearchWrap.value.contains(e.target as Node)) {
       searchFocused.value = false;
+    }
+    if (mobileSearchWrap.value && !mobileSearchWrap.value.contains(e.target as Node)) {
+      mobileSearchFocused.value = false;
     }
   };
   document.addEventListener('mousedown', handler);
   onUnmounted(() => document.removeEventListener('mousedown', handler));
 });
 
-function highlight(text: string): string {
-  if (!searchQuery.value) return text;
-  const escaped = searchQuery.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return text.replace(
-    new RegExp(`(${escaped})`, 'gi'),
-    '<mark class="bg-green-500/20 text-green-300 rounded-sm px-0.5">$1</mark>',
-  );
-}
+// ── Profile dropdown ──────────────────────────────────────────────────────
+const profileOpen = ref(false);
+const profileWrap = ref<HTMLElement | null>(null);
 
-function typeLabel(type: string): string {
-  const map: Record<string, string> = {
-    'anime-serial': 'Аниме-сериал',
-    'anime': 'Аниме-фильм',
-  };
-  return map[type] ?? 'Аниме';
-}
-
-// ── User menu ─────────────────────────────────────────────────────────────
-const userInitial = computed(() => user.value?.email?.[0]?.toUpperCase() ?? '?');
-
-const userMenuItems = computed<unknown[]>(() => [
-  [{ label: user.value?.email ?? '', disabled: true }],
-  [
-    { label: 'История', icon: 'lucide:clock', to: '/history' },
-    { label: 'Профиль', icon: 'lucide:user', to: '/profile' },
-    ...(isAdmin.value ? [{ label: 'Панель', icon: 'lucide:shield', to: '/admin' }] : []),
-  ],
-  [{ label: 'Выйти', icon: 'lucide:log-out', onSelect: () => void logout() }],
+const profileMenuItems = computed(() => [
+  { to: '/profile', label: 'Профиль',     icon: 'lucide:user'   },
+  { to: '/history', label: 'История',     icon: 'lucide:clock'  },
+  ...(isAdmin.value ? [{ to: '/admin', label: 'Панель',  icon: 'lucide:shield' }] : []),
 ]);
+
+onMounted(() => {
+  const handler = (e: MouseEvent) => {
+    if (profileWrap.value && !profileWrap.value.contains(e.target as Node)) {
+      profileOpen.value = false;
+    }
+  };
+  document.addEventListener('mousedown', handler);
+  onUnmounted(() => document.removeEventListener('mousedown', handler));
+});
+
+async function handleLogout(): Promise<void> {
+  profileOpen.value = false;
+  await logout();
+  router.push('/');
+}
 </script>
 
 <style scoped>
-.dropdown-enter-active { transition: opacity 0.18s ease, transform 0.18s ease; }
-.dropdown-leave-active { transition: opacity 0.14s ease, transform 0.14s ease; }
-.dropdown-enter-from  { opacity: 0; transform: translateY(-4px); }
-.dropdown-leave-to    { opacity: 0; transform: translateY(-4px); }
+/* ── Header backgrounds ──────────────────────────────────────────────────── */
+.header--top {
+  background: transparent;
+}
+.header--scrolled {
+  background: rgba(15, 17, 23, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* Light mode header */
+:global(html.light) .header--scrolled {
+  background: rgba(240, 243, 249, 0.90);
+  border-bottom-color: rgba(0, 0, 0, 0.07);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Search input ────────────────────────────────────────────────────────── */
+.search-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.search-input:focus { outline: none; }
+.search-input--active {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(74, 222, 128, 0.4);
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.08);
+}
+
+:global(html.light) .search-input {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+:global(html.light) .search-input--active {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(34, 197, 94, 0.5);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.08);
+}
+
+/* ── Dropdown panels ─────────────────────────────────────────────────────── */
+.search-dropdown,
+.profile-dropdown {
+  background: rgba(18, 21, 30, 0.97);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+:global(html.light) .search-dropdown,
+:global(html.light) .profile-dropdown {
+  background: rgba(252, 253, 255, 0.97);
+  border-color: rgba(0, 0, 0, 0.09);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+/* ── Transitions ─────────────────────────────────────────────────────────── */
+.search-drop-enter-active  { transition: opacity 0.15s ease, transform 0.15s ease; }
+.search-drop-leave-active  { transition: opacity 0.1s  ease, transform 0.1s  ease; }
+.search-drop-enter-from    { opacity: 0; transform: translateY(-8px) scale(0.97); }
+.search-drop-leave-to      { opacity: 0; transform: translateY(-4px) scale(0.98); }
+
+.profile-drop-enter-active { transition: opacity 0.15s ease, transform 0.15s ease; }
+.profile-drop-leave-active { transition: opacity 0.1s  ease, transform 0.1s  ease; }
+.profile-drop-enter-from   { opacity: 0; transform: translateY(-10px) scale(0.95); }
+.profile-drop-leave-to     { opacity: 0; transform: translateY(-5px)  scale(0.97); }
 </style>

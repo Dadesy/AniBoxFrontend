@@ -10,7 +10,7 @@ import ContinueWatchingBlock from '~/components/content/ContinueWatchingBlock.vu
 // ── Auth ──────────────────────────────────────────────────────────────────
 const { isAuthenticated } = useAuth()
 
-// ── Metadata (Shikimori + Jikan) ──────────────────────────────────────────
+// ── Metadata (Shikimori) ──────────────────────────────────────────────────
 const { hero, sections, loading: metaLoading } = useHomeData()
 const { schedule, loading: scheduleLoading, todayDayKey } = useSchedule()
 

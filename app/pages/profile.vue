@@ -54,9 +54,19 @@
       </section>
 
       <!-- Continue watching -->
-      <section v-if="continueWatching.length > 0" class="profile-section">
+      <section class="profile-section">
         <h2 class="section-title">Продолжить просмотр</h2>
-        <div class="continue-grid">
+
+        <!-- Empty state -->
+        <div v-if="!loading && continueWatching.length === 0" class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
+            <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
+          </svg>
+          <p class="empty-text">Вы ещё ничего не смотрели</p>
+          <NuxtLink to="/catalog" class="cta-btn">Начать смотреть</NuxtLink>
+        </div>
+
+        <div v-else class="continue-grid">
           <div
             v-for="item in continueWatching"
             :key="item.id"
@@ -466,6 +476,44 @@ function formatDate(dateStr: string): string {
   height: 100%;
   background: var(--color-primary, #22c55e);
   border-radius: 99px;
+}
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 24px;
+  border: 1px dashed rgba(255,255,255,.1);
+  border-radius: 16px;
+  color: rgba(255,255,255,.4);
+}
+
+.empty-icon { opacity: .4; }
+
+.empty-text {
+  font-size: .9rem;
+  margin: 0;
+}
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 22px;
+  background: var(--color-primary, #22c55e);
+  color: #000;
+  font-size: .85rem;
+  font-weight: 700;
+  border-radius: 99px;
+  text-decoration: none;
+  transition: background .2s, box-shadow .2s;
+  box-shadow: 0 0 16px rgba(34,197,94,.25);
+}
+
+.cta-btn:hover {
+  background: #4ade80;
+  box-shadow: 0 0 24px rgba(34,197,94,.4);
 }
 
 /* Error */

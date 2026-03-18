@@ -1,7 +1,9 @@
 <template>
-  <div class="min-h-screen bg-cinema-base text-[#f0f0f0]">
+  <div class="min-h-screen bg-cinema-base">
     <AppHeader />
-    <main>
+    <!-- pt-[104px] accounts for mobile 2-row header (56px + 48px search row) -->
+    <!-- sm:pt-16 is the single-row desktop header (64px) -->
+    <main class="pt-[104px] sm:pt-16">
       <slot />
     </main>
   </div>
