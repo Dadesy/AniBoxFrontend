@@ -60,6 +60,7 @@ export interface ContentCard {
   episodesCount?: number;
   lastSeason?: number;
   lastEpisode?: number;
+  score?: number;
   quality: string;
   playerUrl: string;
   translation: Translation;
@@ -78,6 +79,7 @@ export interface AnimeDetail extends ContentCard {
   seasons: Season[];
   seasonOptions: SeasonOption[];
   related: NormalizedAnimeCard[];
+  titleRu?: string;
 }
 
 export interface AnimeEpisodesResponse {

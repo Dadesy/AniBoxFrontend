@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import type { EpisodeProgress } from '~/types/content'
-import type { HomeSection, NormalizedAnimeCard, ScheduleDay } from '~/types/metadata'
-import { useHomeData, useSchedule } from '~/composables/useMetadata'
+import { useHomeData } from '~/composables/useMetadata'
 import HeroSection from '~/components/home/HeroSection.vue'
 import AnimeCarousel from '~/components/home/AnimeCarousel.vue'
-import WeekSchedule from '~/components/home/WeekSchedule.vue'
 import ContinueWatchingBlock from '~/components/content/ContinueWatchingBlock.vue'
 
 // ── Auth ──────────────────────────────────────────────────────────────────
@@ -12,7 +10,6 @@ const { isAuthenticated } = useAuth()
 
 // ── Metadata (Shikimori) ──────────────────────────────────────────────────
 const { hero, sections, loading: metaLoading } = useHomeData()
-const { schedule, loading: scheduleLoading, todayDayKey } = useSchedule()
 
 // ── Continue watching ─────────────────────────────────────────────────────
 const continueItems = ref<EpisodeProgress[]>([])
@@ -59,7 +56,7 @@ useHead({
   <div class="min-h-screen">
 
     <!-- ── Hero ─────────────────────────────────────────────────────────── -->
-    <div class="px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+    <div class="px-4 pb-8 pt-4 sm:px-6 lg:px-8">
       <HeroSection :card="hero" :loading="metaLoading" />
     </div>
 
@@ -72,7 +69,7 @@ useHead({
     </div>
 
     <!-- ── Carousels ──────────────────────────────────────────────────── -->
-    <div class="space-y-10 pb-16">
+    <div class="space-y-8 pb-16">
 
       <!-- Loading: always show 4 skeleton carousels -->
       <template v-if="metaLoading">
@@ -106,22 +103,12 @@ useHead({
           <p class="text-sm text-white/25">Проверьте, что бэкенд запущен</p>
           <NuxtLink
             to="/catalog"
-            class="mt-2 rounded-xl bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-emerald-400"
+            class="mt-2 rounded bg-emerald-500 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-400 transition-colors"
           >
             Открыть каталог
           </NuxtLink>
         </div>
       </template>
     </div>
-
-    <!-- ── Bottom: Schedule ───────────────────────────────────────────── -->
-    <div class="px-4 pb-16 sm:px-6 lg:px-8">
-      <WeekSchedule
-        :schedule="schedule"
-        :loading="scheduleLoading"
-        :today-day-key="todayDayKey"
-      />
-    </div>
-
   </div>
 </template>

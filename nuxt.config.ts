@@ -11,7 +11,7 @@ export default defineNuxtConfig({
       pathPrefix: false,
     },
   ],
-  colorMode: { preference: 'dark', fallback: 'dark', classSuffix: '' },
+  colorMode: { preference: 'system', fallback: 'dark', classSuffix: '' },
   devtools: { enabled: true },
   css: [
     '@fontsource-variable/public-sans/index.css',

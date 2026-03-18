@@ -22,6 +22,7 @@
           >
             {{ link.label }}
           </NuxtLink>
+
         </nav>
       </div>
 
@@ -75,6 +76,19 @@
 
       <!-- Right: Actions ──────────────────────────────────────────── -->
       <div class="absolute right-0 top-0 h-full flex items-center pr-4 sm:pr-6 gap-1 z-10">
+
+        <button
+          class="flex w-9 h-9 items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/6 transition-all"
+          :disabled="randomLoading"
+          title="Случайное аниме"
+          @click="goRandom"
+        >
+          <UIcon
+            :name="randomLoading ? 'lucide:loader-circle' : 'lucide:dices'"
+            class="size-[18px]"
+            :class="randomLoading ? 'animate-spin' : ''"
+          />
+        </button>
 
         <!-- Theme toggle -->
         <ThemeToggle />
@@ -208,7 +222,11 @@
 
 <script setup lang="ts">
 import SearchDropdownContent from '~/components/header/SearchDropdownContent.vue';
+import ThemeToggle from '~/components/header/ThemeToggle.vue';
+import UserAvatar from '~/components/common/UserAvatar.vue';
+import { navigateToCard } from '~/composables/useMetadata';
 import type { ContentCard } from '~/types/content';
+import type { HomePageData, NormalizedAnimeCard } from '~/types/metadata';
 
 const { user, isAuthenticated, isAdmin, logout } = useAuth();
 const router = useRouter();
@@ -234,6 +252,7 @@ const searchQuery         = ref('');
 const searchResults       = ref<ContentCard[]>([]);
 const searchLoading       = ref(false);
 const searchError         = ref<string | null>(null);
+const randomLoading       = ref(false);
 const searchFocused       = ref(false);
 const mobileSearchFocused = ref(false);
 
@@ -290,6 +309,60 @@ function goSearch(): void {
   closeMobileSearch();
 }
 
+async function goRandom(): Promise<void> {
+  if (randomLoading.value) return;
+
+  randomLoading.value = true;
+  try {
+    const random = await $fetch<{ id: string; type: string }>(`${apiUrl}/content/random`);
+    await router.push(`/title/${encodeURIComponent(random.id)}`);
+  } catch (error) {
+    console.warn('[header-random] failed to pick random title:', error);
+    const fallbackCard = await getRandomCardFromMetadata();
+
+    if (fallbackCard) {
+      await navigateToCard(fallbackCard);
+      randomLoading.value = false;
+      return;
+    }
+
+    await router.push('/catalog');
+  } finally {
+    randomLoading.value = false;
+  }
+}
+
+async function getRandomCardFromMetadata(): Promise<NormalizedAnimeCard | null> {
+  try {
+    const data = await $fetch<HomePageData>(`${apiUrl}/metadata/home`, {
+      cache: 'no-store',
+      headers: {
+        'cache-control': 'no-cache',
+        pragma: 'no-cache',
+      },
+    });
+
+    const uniqueCards = new Map<string, NormalizedAnimeCard>();
+    const cards = [
+      ...(data.hero ? [data.hero] : []),
+      ...data.sections.flatMap((section) => section.items),
+    ];
+
+    for (const card of cards) {
+      uniqueCards.set(`${card.source}:${card.id}`, card);
+    }
+
+    const values = Array.from(uniqueCards.values());
+    if (!values.length) return null;
+
+    const randomIndex = Math.floor(Math.random() * values.length);
+    return values[randomIndex] ?? null;
+  } catch (error) {
+    console.warn('[header-random] metadata fallback failed:', error);
+    return null;
+  }
+}
+
 // Close search on outside click
 onMounted(() => {
   const handler = (e: MouseEvent) => {
@@ -334,21 +407,23 @@ async function handleLogout(): Promise<void> {
 <style scoped>
 /* ── Header backgrounds ──────────────────────────────────────────────────── */
 .header--top {
-  background: transparent;
+  /* subtle gradient so controls are visible over hero backgrounds */
+  background: linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%);
 }
 .header--scrolled {
-  background: rgba(15, 17, 23, 0.88);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.35);
+  background: var(--header-scrolled-bg, rgba(17, 17, 19, 0.92));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--header-scrolled-border, rgba(255, 255, 255, 0.06));
 }
 
-/* Light mode header */
-:global(html.light) .header--scrolled {
-  background: rgba(240, 243, 249, 0.90);
-  border-bottom-color: rgba(0, 0, 0, 0.07);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+:global(html.light) .header--top {
+  background: linear-gradient(to bottom, rgba(63, 55, 47, 0.16) 0%, transparent 100%);
+}
+:global(html.light) header.header--scrolled {
+  background: rgba(238, 231, 221, 0.94);
+  border-bottom-color: rgba(79, 70, 61, 0.1);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
 }
 
 /* ── Search input ────────────────────────────────────────────────────────── */
@@ -376,7 +451,7 @@ async function handleLogout(): Promise<void> {
 /* ── Dropdown panels ─────────────────────────────────────────────────────── */
 .search-dropdown,
 .profile-dropdown {
-  background: rgba(18, 21, 30, 0.97);
+  background: rgba(22, 22, 24, 0.97);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.08);

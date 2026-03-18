@@ -6,7 +6,6 @@ const props = defineProps<{
   title: string
   items: NormalizedAnimeCard[]
   loading?: boolean
-  /** Link for "see all" button */
   seeAllHref?: string
   cardSize?: 'sm' | 'md'
 }>()
@@ -24,76 +23,69 @@ function updateScrollState() {
 
 function scroll(dir: 'left' | 'right') {
   if (!track.value) return
-  const amount = track.value.clientWidth * 0.75
-  track.value.scrollBy({ left: dir === 'left' ? -amount : amount, behavior: 'smooth' })
+  track.value.scrollBy({ left: dir === 'left' ? -(track.value.clientWidth * 0.7) : track.value.clientWidth * 0.7, behavior: 'smooth' })
 }
 
 onMounted(() => {
   track.value?.addEventListener('scroll', updateScrollState, { passive: true })
   updateScrollState()
 })
+onUnmounted(() => track.value?.removeEventListener('scroll', updateScrollState))
 
-onUnmounted(() => {
-  track.value?.removeEventListener('scroll', updateScrollState)
-})
-
-// Skeleton count
 const SKELETON_COUNT = 8
 </script>
 
 <template>
   <section class="relative">
-    <!-- Header -->
-    <div class="mb-4 flex items-center justify-between px-4 sm:px-6">
-      <h2 class="flex items-center gap-2 text-xl font-bold text-white">
-        <span class="h-5 w-1 rounded-full bg-emerald-500" />
-        {{ title }}
-      </h2>
 
-      <div class="flex items-center gap-2">
-        <!-- Arrow controls -->
-        <button
-          v-if="!loading && items.length > 0"
-          :disabled="!canScrollLeft"
-          class="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/60 backdrop-blur-sm transition-all hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-400 disabled:cursor-not-allowed disabled:opacity-30"
-          @click="scroll('left')"
-        >
-          <UIcon name="i-heroicons-chevron-left" class="h-4 w-4" />
-        </button>
-        <button
-          v-if="!loading && items.length > 0"
-          :disabled="!canScrollRight"
-          class="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/60 backdrop-blur-sm transition-all hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-400 disabled:cursor-not-allowed disabled:opacity-30"
-          @click="scroll('right')"
-        >
-          <UIcon name="i-heroicons-chevron-right" class="h-4 w-4" />
-        </button>
+    <!-- Section header -->
+    <div class="mb-3 flex items-center justify-between px-4 sm:px-6">
+      <h2 class="text-[15px] font-semibold text-zinc-100 tracking-tight">{{ title }}</h2>
+
+      <div class="flex items-center gap-1.5">
+        <!-- Scroll arrows (desktop) -->
+        <template v-if="!loading && items.length > 0">
+          <button
+            :disabled="!canScrollLeft"
+            class="hidden sm:flex h-7 w-7 items-center justify-center rounded text-zinc-500 hover:text-zinc-200 hover:bg-white/6 transition-all disabled:opacity-25 disabled:cursor-default"
+            @click="scroll('left')"
+          >
+            <UIcon name="i-heroicons-chevron-left" class="h-4 w-4" />
+          </button>
+          <button
+            :disabled="!canScrollRight"
+            class="hidden sm:flex h-7 w-7 items-center justify-center rounded text-zinc-500 hover:text-zinc-200 hover:bg-white/6 transition-all disabled:opacity-25 disabled:cursor-default"
+            @click="scroll('right')"
+          >
+            <UIcon name="i-heroicons-chevron-right" class="h-4 w-4" />
+          </button>
+        </template>
 
         <NuxtLink
           v-if="seeAllHref && !loading"
           :to="seeAllHref"
-          class="text-sm font-medium text-white/40 transition-colors hover:text-emerald-400"
+          class="text-[12px] text-zinc-500 hover:text-emerald-400 transition-colors"
         >
           Все →
         </NuxtLink>
       </div>
     </div>
 
-    <!-- Track -->
+    <!-- Scroll track -->
     <div
       ref="track"
-      class="scrollbar-hide flex gap-3 overflow-x-auto px-4 pb-2 sm:px-6"
+      class="scrollbar-hide flex gap-2.5 overflow-x-auto px-4 pb-1 sm:px-6"
       style="scroll-snap-type: x mandatory;"
     >
-      <!-- Skeleton loading -->
+      <!-- Skeleton -->
       <template v-if="loading">
         <div
           v-for="n in SKELETON_COUNT"
           :key="n"
           class="flex-shrink-0"
-          :class="cardSize === 'sm' ? 'w-[140px]' : 'w-[160px]'"
+          :class="cardSize === 'sm' ? 'w-[130px]' : 'w-[150px]'"
         >
-          <div class="aspect-[2/3] animate-pulse rounded-xl bg-white/5" />
+          <div class="aspect-[2/3] animate-pulse rounded bg-white/5" />
           <div class="mt-2 space-y-1.5">
             <div class="h-3 animate-pulse rounded bg-white/5" />
             <div class="h-2 w-2/3 animate-pulse rounded bg-white/5" />
@@ -101,11 +93,12 @@ const SKELETON_COUNT = 8
         </div>
       </template>
 
-      <!-- Actual cards -->
+      <!-- Cards -->
       <template v-else>
         <div
           v-for="card in items"
           :key="`${card.source}-${card.id}`"
+          class="flex-shrink-0"
           style="scroll-snap-align: start;"
         >
           <MetaCard :card="card" :size="cardSize ?? 'md'" />
@@ -113,16 +106,5 @@ const SKELETON_COUNT = 8
       </template>
     </div>
 
-    <!-- Edge fade gradients -->
-    <div
-      v-if="canScrollLeft"
-      class="pointer-events-none absolute bottom-0 left-0 top-0 w-16 bg-gradient-to-r from-zinc-950 to-transparent"
-      style="top: 40px;"
-    />
-    <div
-      v-if="canScrollRight && !loading"
-      class="pointer-events-none absolute bottom-0 right-0 top-0 w-16 bg-gradient-to-l from-zinc-950 to-transparent"
-      style="top: 40px;"
-    />
   </section>
 </template>

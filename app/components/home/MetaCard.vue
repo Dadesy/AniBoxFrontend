@@ -5,7 +5,6 @@ import { navigateToCard } from '~/composables/useMetadata'
 
 const props = defineProps<{
   card: NormalizedAnimeCard
-  /** Show bigger card (for hero carousel context) */
   size?: 'sm' | 'md'
 }>()
 
@@ -21,111 +20,104 @@ async function handleClick() {
 
 const displayTitle = computed(() => props.card.titleRu || props.card.title)
 const kindLabel    = computed(() => KIND_LABELS[props.card.kind ?? ''] ?? props.card.kind?.toUpperCase() ?? '')
-const statusLabel  = computed(() => STATUS_LABELS[props.card.status] ?? props.card.status)
+const isOngoing    = computed(() => props.card.status === 'ongoing' || props.card.status === 'Currently Airing')
 const scoreColor   = computed(() => {
   const s = props.card.score ?? 0
   if (s >= 8) return 'text-emerald-400'
   if (s >= 6) return 'text-yellow-400'
-  return 'text-red-400'
+  return 'text-slate-400'
 })
+
+const cardW = computed(() => props.size === 'sm' ? 'w-[130px]' : 'w-[150px]')
 </script>
 
 <template>
   <div
-    class="meta-card group relative flex-shrink-0 cursor-pointer select-none"
-    :class="size === 'sm' ? 'w-[140px]' : 'w-[160px]'"
+    class="group relative cursor-pointer select-none flex-shrink-0"
+    :class="cardW"
     @click="handleClick"
   >
     <!-- Poster -->
-    <div
-      class="relative overflow-hidden rounded-xl bg-white/5"
-      :class="size === 'sm' ? 'aspect-[2/3]' : 'aspect-[2/3]'"
-    >
-      <!-- Skeleton shimmer when no poster -->
+    <div class="relative overflow-hidden rounded bg-white/5 aspect-[2/3]">
+
+      <!-- No poster fallback -->
       <div
         v-if="!card.posterUrl || posterFailed"
-        class="absolute inset-0 animate-pulse bg-gradient-to-br from-white/5 to-white/10"
+        class="absolute inset-0 flex items-center justify-center bg-cinema-card"
       >
-        <div class="flex h-full w-full items-center justify-center">
-          <UIcon name="lucide:image-off" class="size-10 text-slate-700" />
-        </div>
+        <UIcon name="lucide:image-off" class="size-8 text-zinc-700" />
       </div>
 
+      <!-- Image -->
       <img
         v-else
         :src="card.posterUrl"
         :alt="displayTitle"
         loading="lazy"
-        class="h-full w-full object-cover transition-transform duration-500 ease-out will-change-transform group-hover:scale-110"
+        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
         @error="posterFailed = true"
       />
 
-      <!-- Gradient overlay (always) -->
-      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-      <!-- Hover: Play button -->
-      <div class="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+      <!-- Hover overlay: subtle dark tint + play icon -->
+      <div class="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/40 transition-colors duration-200">
         <div
-          class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/90 shadow-lg shadow-emerald-500/30 backdrop-blur-sm transition-transform duration-200 group-hover:scale-110"
-          :class="{ 'animate-pulse': navigating }"
+          class="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200"
+          :class="{ 'animate-pulse opacity-100 scale-100': navigating }"
         >
           <UIcon
             v-if="!navigating"
             name="i-heroicons-play-solid"
-            class="ml-0.5 h-5 w-5 text-white"
+            class="ml-0.5 h-4 w-4 text-zinc-900"
           />
-          <UIcon v-else name="i-heroicons-arrow-path" class="h-4 w-4 animate-spin text-white" />
+          <UIcon v-else name="i-heroicons-arrow-path" class="h-4 w-4 text-zinc-900 animate-spin" />
         </div>
       </div>
 
-      <!-- Top badges -->
-      <div class="absolute left-2 top-2 flex flex-col gap-1">
+      <!-- Top-left: kind badge -->
+      <div class="absolute left-1.5 top-1.5 flex flex-col gap-1">
         <span
           v-if="kindLabel"
-          class="rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white backdrop-blur-sm"
+          class="rounded-sm bg-black/60 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white/80"
         >
           {{ kindLabel }}
         </span>
         <span
-          v-if="card.status === 'ongoing' || card.status === 'Currently Airing'"
-          class="flex items-center gap-1 rounded-md bg-emerald-500/80 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-sm"
+          v-if="isOngoing"
+          class="flex items-center gap-0.5 rounded-sm bg-emerald-500/80 px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white"
         >
-          <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-          LIVE
+          <span class="h-1 w-1 rounded-full bg-white animate-pulse" />
+          Live
         </span>
       </div>
 
-      <!-- Score badge -->
+      <!-- Top-right: score -->
       <div
         v-if="card.score"
-        class="absolute right-2 top-2 flex items-center gap-0.5 rounded-md bg-black/70 px-1.5 py-0.5 backdrop-blur-sm"
+        class="absolute right-1.5 top-1.5 flex items-center gap-0.5 rounded-sm bg-black/65 px-1 py-0.5"
       >
-        <UIcon name="i-heroicons-star-solid" class="h-3 w-3 text-yellow-400" />
-        <span :class="['text-[11px] font-bold', scoreColor]">{{ card.score.toFixed(1) }}</span>
+        <UIcon name="i-heroicons-star-solid" class="h-2.5 w-2.5 text-yellow-400" />
+        <span :class="['text-[10px] font-bold', scoreColor]">{{ card.score.toFixed(1) }}</span>
       </div>
 
-      <!-- Ongoing progress bar (episodesAired / episodes) -->
+      <!-- Episode progress bar -->
       <div
         v-if="card.episodesAired && card.episodes"
-        class="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10"
+        class="absolute bottom-0 left-0 right-0 h-0.5 bg-black/30"
       >
         <div
-          class="h-full bg-emerald-500 transition-all"
+          class="h-full bg-emerald-500"
           :style="{ width: `${Math.min((card.episodesAired / card.episodes) * 100, 100)}%` }"
         />
       </div>
     </div>
 
-    <!-- Info below poster -->
+    <!-- Info -->
     <div class="mt-2 space-y-0.5 px-0.5">
-      <p class="line-clamp-2 text-[13px] font-semibold leading-snug text-white transition-colors group-hover:text-emerald-400">
+      <p class="line-clamp-2 text-[12px] font-medium leading-snug text-zinc-200 group-hover:text-white transition-colors">
         {{ displayTitle }}
       </p>
-      <p class="text-[11px] text-white/40">
-        {{ [card.year, statusLabel].filter(Boolean).join(' · ') }}
-        <span v-if="card.episodesAired && card.status === 'ongoing'">
-          · {{ card.episodesAired }} эп.
-        </span>
+      <p class="text-[11px] text-zinc-500">
+        {{ [card.year, card.episodesAired && isOngoing ? `${card.episodesAired} эп.` : ''].filter(Boolean).join(' · ') || '\u00A0' }}
       </p>
     </div>
   </div>

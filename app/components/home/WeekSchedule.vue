@@ -25,9 +25,8 @@ const DAYS_SKELETON = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 </script>
 
 <template>
-  <section class="rounded-2xl border border-white/5 bg-white/[0.03] p-6 backdrop-blur-sm">
-    <h2 class="mb-5 flex items-center gap-2 text-xl font-bold text-white">
-      <span class="h-5 w-1 rounded-full bg-emerald-500" />
+  <section class="rounded-lg border border-white/5 bg-white/[0.02] p-5">
+    <h2 class="mb-4 text-[15px] font-semibold text-zinc-100 tracking-tight">
       Расписание выхода
     </h2>
 
@@ -37,12 +36,12 @@ const DAYS_SKELETON = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
         <div
           v-for="d in DAYS_SKELETON"
           :key="d"
-          class="h-9 w-12 animate-pulse rounded-lg bg-white/5"
+          class="h-9 w-12 animate-pulse rounded bg-white/5"
         />
       </div>
       <div class="space-y-3">
         <div v-for="n in 5" :key="n" class="flex items-center gap-3">
-          <div class="h-14 w-10 animate-pulse rounded-lg bg-white/5" />
+          <div class="h-14 w-10 animate-pulse rounded bg-white/5" />
           <div class="flex-1 space-y-2">
             <div class="h-3 w-40 animate-pulse rounded bg-white/5" />
             <div class="h-2 w-24 animate-pulse rounded bg-white/5" />
@@ -57,13 +56,13 @@ const DAYS_SKELETON = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
         <button
           v-for="(day, idx) in schedule"
           :key="day.dayKey"
-          class="rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200"
+          class="rounded px-3 py-1.5 text-[13px] font-medium transition-colors"
           :class="[
             idx === selectedIdx
-              ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
-              : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/80',
+              ? 'bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30'
+              : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5',
             idx === activeDayIdx && idx !== selectedIdx
-              ? 'ring-1 ring-emerald-500/40'
+              ? 'text-zinc-300'
               : '',
           ]"
           @click="selectedIdx = idx"
@@ -90,11 +89,11 @@ const DAYS_SKELETON = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
         <button
           v-for="anime in selectedDay.anime"
           :key="anime.id"
-          class="group flex w-full items-center gap-3 rounded-xl p-2 text-left transition-all duration-200 hover:bg-white/5"
+          class="group flex w-full items-center gap-3 rounded p-2 text-left transition-colors hover:bg-white/4"
           @click="navigateToCard(anime)"
         >
           <!-- Mini poster -->
-          <div class="relative h-14 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-white/5">
+          <div class="relative h-14 w-10 flex-shrink-0 overflow-hidden rounded bg-white/5">
             <img
               v-if="anime.posterUrl"
               :src="anime.posterUrl"
@@ -107,18 +106,18 @@ const DAYS_SKELETON = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
           <!-- Info -->
           <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-semibold text-white/90 transition-colors group-hover:text-emerald-400">
+            <p class="truncate text-[13px] font-medium text-zinc-300 transition-colors group-hover:text-white">
               {{ anime.titleRu || anime.title }}
             </p>
-            <p class="text-xs text-white/40">
+            <p class="text-[11px] text-zinc-600">
               {{ anime.broadcast?.time ?? '' }}
-              <span v-if="anime.score" class="ml-2 text-yellow-400">★ {{ anime.score.toFixed(1) }}</span>
+              <span v-if="anime.score" class="ml-2 text-zinc-500">★ {{ anime.score.toFixed(1) }}</span>
             </p>
           </div>
 
           <UIcon
             name="i-heroicons-chevron-right"
-            class="h-4 w-4 flex-shrink-0 text-white/20 transition-all group-hover:text-emerald-500 group-hover:translate-x-0.5"
+            class="h-4 w-4 flex-shrink-0 text-zinc-700 transition-colors group-hover:text-zinc-400"
           />
         </button>
       </div>

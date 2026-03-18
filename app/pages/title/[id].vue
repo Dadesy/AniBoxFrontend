@@ -55,8 +55,8 @@
                 </span>
               </div>
 
-              <h1 class="text-2xl font-extrabold leading-tight text-white sm:text-4xl">{{ detail.title }}</h1>
-              <p v-if="detail.originalTitle !== detail.title" class="text-sm text-slate-400">
+              <h1 class="text-2xl font-extrabold leading-tight text-white sm:text-4xl">{{ detail.titleRu || detail.title }}</h1>
+              <p v-if="detail.originalTitle && detail.originalTitle !== (detail.titleRu || detail.title)" class="text-sm text-slate-400">
                 {{ detail.originalTitle }}
               </p>
 
@@ -125,15 +125,15 @@
           </div>
         </div>
 
-        <div v-if="detail.related.length" class="space-y-3">
+        <div v-if="sortedRelated.length" class="space-y-3">
           <h2 class="flex items-center gap-2 text-base font-bold text-white">
             <UIcon name="lucide:layers" class="size-4 text-green-400" />
-            Связанное
+            Порядок просмотра
           </h2>
 
           <div class="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             <div
-              v-for="card in detail.related"
+              v-for="card in sortedRelated"
               :key="`${card.source}-${card.id}`"
               class="flex-shrink-0"
             >
@@ -152,6 +152,24 @@ import { loadAnimePreferences, saveAnimePreferences } from '~/composables/useAni
 import { getAnimeById, getEpisodes, findSeason } from '~/services/animeService'
 import type { AnimeDetail, EpisodeProgress, SeasonOption } from '~/types/content'
 
+// Viewing order relation priority: prequels first, then main, then sequels/OVAs
+const RELATION_ORDER: Record<string, number> = {
+  'Приквел': 1,
+  'Prequel': 1,
+  'Полнометражный приквел': 2,
+  'Продолжение': 4,
+  'Sequel': 4,
+  'Полнометражное продолжение': 5,
+  'Побочная история': 6,
+  'Side story': 6,
+  'Альтернативная версия': 7,
+  'Alternative version': 7,
+  'Спин-офф': 8,
+  'Spin-off': 8,
+  'Дополнение': 9,
+  'OVA': 9,
+}
+
 const route = useRoute()
 const router = useRouter()
 const externalId = computed(() => decodeURIComponent(route.params.id as string))
@@ -169,6 +187,15 @@ const selectedEpisode = ref(1)
 const { loadTitleProgress } = useWatchProgress()
 
 const pending = computed(() => pagePending.value)
+const sortedRelated = computed(() => {
+  if (!detail.value?.related.length) return []
+  return [...detail.value.related].sort((a, b) => {
+    const oa = RELATION_ORDER[a.relation ?? ''] ?? 3
+    const ob = RELATION_ORDER[b.relation ?? ''] ?? 3
+    if (oa !== ob) return oa - ob
+    return (a.year ?? 0) - (b.year ?? 0)
+  })
+})
 const latestProgress = computed(() =>
   titleProgress.value.find((item) => !item.completed) ?? titleProgress.value[0] ?? null,
 )
@@ -348,6 +375,6 @@ watch(externalId, () => {
 })
 
 useHead({
-  title: computed(() => (detail.value ? `${detail.value.title} — AniBox` : 'AniBox')),
+  title: computed(() => (detail.value ? `${detail.value.titleRu || detail.value.title} — AniBox` : 'AniBox')),
 })
 </script>
