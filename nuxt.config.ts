@@ -2,6 +2,31 @@ import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite';
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
+const rawApiUrl = process.env.NUXT_PUBLIC_API_URL ?? 'http://localhost:8080/api';
+
+function getApiOrigin(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const withProtocol = /^https?:\/\//i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
+
+  try {
+    return new URL(withProtocol).origin;
+  } catch {
+    return null;
+  }
+}
+
+const apiOrigin = getApiOrigin(rawApiUrl);
+const defaultConnectSrc = ["'self'", ...(apiOrigin ? [apiOrigin] : [])];
+const watchConnectSrc = [
+  ...defaultConnectSrc,
+  'https://kodik.info',
+  'https://kodik.cc',
+  'https://kodik.biz',
+];
 
 export default defineNuxtConfig({
   modules: ['@nuxt/ui'],
@@ -57,7 +82,7 @@ export default defineNuxtConfig({
               "img-src 'self' data: https: blob:",
               "media-src 'self' https: blob:",
               "frame-src 'self' https://kodik.info https://kodik.cc https://kodik.biz",
-              "connect-src 'self' https://kodik.info https://kodik.cc https://kodik.biz",
+              `connect-src ${watchConnectSrc.join(' ')}`,
             ].join('; '),
           },
         },
@@ -70,7 +95,7 @@ export default defineNuxtConfig({
               "img-src 'self' data: https: blob:",
               "media-src 'self' https: blob:",
               "frame-src 'none'",
-              "connect-src 'self'",
+              `connect-src ${defaultConnectSrc.join(' ')}`,
             ].join('; '),
             'X-Frame-Options': 'DENY',
             'X-Content-Type-Options': 'nosniff',
