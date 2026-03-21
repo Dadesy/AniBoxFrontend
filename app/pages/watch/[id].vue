@@ -78,6 +78,7 @@ interface PlayerContainerExpose {
 }
 
 const route = useRoute()
+const router = useRouter()
 const externalId = computed(() => decodeURIComponent(route.params.id as string))
 const qSeason = computed(() => (route.query.season ? Number(route.query.season) : undefined))
 const qEpisode = computed(() => (route.query.episode ? Number(route.query.episode) : undefined))
@@ -257,6 +258,18 @@ function formatTime(seconds: number): string {
   const remainder = Math.floor(seconds % 60)
   return `${minutes}:${remainder.toString().padStart(2, '0')}`
 }
+
+// If the title only has AniLibria as source (no Kodik player), redirect to their site
+watch(
+  () => detail.value?.anilibriaUrl,
+  (url) => {
+    if (url && !detail.value?.playerUrl) {
+      window.open(url, '_blank', 'noopener,noreferrer')
+      router.back()
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(() => {
   void loadDetail()

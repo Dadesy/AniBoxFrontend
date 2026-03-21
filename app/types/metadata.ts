@@ -1,5 +1,7 @@
 export interface NormalizedAnimeCard {
   id: string
+  /** AniLibria release alias (slug), e.g. "shingeki-no-kyojin". Used to build fallback externalId. */
+  alias?: string
   source: 'shikimori' | 'anilibria' | 'yanitv'
   externalId?: string
   /** Relation label for related anime section (e.g. "Продолжение", "Приквел") */

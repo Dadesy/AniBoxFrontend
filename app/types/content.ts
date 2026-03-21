@@ -43,7 +43,7 @@ export interface SeasonOption {
 
 export interface ContentCard {
   externalId: string;
-  sourceProvider: 'kodik';
+  sourceProvider: 'kodik' | 'anilibria';
   type: ContentType;
   title: string;
   originalTitle: string;
@@ -80,6 +80,8 @@ export interface AnimeDetail extends ContentCard {
   seasonOptions: SeasonOption[];
   related: NormalizedAnimeCard[];
   titleRu?: string;
+  /** When set — title served from AniLibria fallback. Link to watch on their site. */
+  anilibriaUrl?: string;
 }
 
 export interface AnimeEpisodesResponse {

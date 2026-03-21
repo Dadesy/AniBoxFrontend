@@ -1,6 +1,8 @@
 import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite';
 
+import { buildYandexMetrikaHeadScript } from './metrika-snippet';
+
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const rawApiUrl = process.env.NUXT_PUBLIC_API_URL ?? 'http://localhost:8080/api';
 
@@ -20,13 +22,20 @@ function getApiOrigin(value: string): string | null {
 }
 
 const apiOrigin = getApiOrigin(rawApiUrl);
-/** Yandex.Metrika: tag.js, счётчик, вебвизор */
-const yandexMetrikaOrigins = ['https://mc.yandex.ru', 'https://yastatic.net'] as const;
+/** Yandex.Metrika: tag.js, счётчик, вебвизор, вебвизор по wss */
+const yandexMetrikaOrigins = [
+  'https://mc.yandex.ru',
+  'https://mc.yandex.com',
+  'https://yastatic.net',
+  'https://metrika.yandex.ru',
+] as const;
+const yandexMetrikaConnectWs = ['wss://mc.yandex.ru', 'wss://mc.yandex.com'] as const;
 const defaultConnectSrc = [
   "'self'",
   ...(apiOrigin ? [apiOrigin] : []),
   'https://anilibria.top', // AniLibria public API — fresh releases section
   ...yandexMetrikaOrigins,
+  ...yandexMetrikaConnectWs,
 ];
 const watchConnectSrc = [
   ...defaultConnectSrc,
@@ -34,7 +43,12 @@ const watchConnectSrc = [
   'https://kodik.cc',
   'https://kodik.biz',
 ];
-const scriptSrcWithMetrika = ["'self'", "'unsafe-inline'", ...yandexMetrikaOrigins].join(' ');
+const scriptSrcMetrikaList = ["'self'", "'unsafe-inline'", ...yandexMetrikaOrigins].join(' ');
+/** Safari/WebKit иногда проверяет script-src-elem отдельно */
+const scriptSrcWithMetrika = [
+  `script-src ${scriptSrcMetrikaList}`,
+  `script-src-elem ${scriptSrcMetrikaList}`,
+].join('; ');
 const frameSrcWithMetrikaWatch = [
   "'self'",
   'https://kodik.info',
@@ -44,6 +58,19 @@ const frameSrcWithMetrikaWatch = [
 ].join(' ');
 /** Без 'none': вебвизор Метрики грузит iframe с mc.yandex.ru */
 const frameSrcWithMetrikaDefault = [...yandexMetrikaOrigins].join(' ');
+
+const ymIdForHead = process.env.NUXT_PUBLIC_YANDEX_METRIKA_ID ?? '108180420';
+const yandexMetrikaHeadScripts =
+  !isDevelopment && ymIdForHead.trim() !== '' && ymIdForHead !== '0'
+    ? [
+        {
+          key: 'yandex-metrika',
+          type: 'text/javascript' as const,
+          innerHTML: buildYandexMetrikaHeadScript(ymIdForHead),
+          tagPriority: 'critical' as const,
+        },
+      ]
+    : [];
 
 export default defineNuxtConfig({
   modules: ['@nuxt/ui'],
@@ -114,6 +141,7 @@ export default defineNuxtConfig({
         { rel: 'manifest', href: '/site.webmanifest' },
         { rel: 'preconnect', href: 'https://anilibria.top' },
       ],
+      script: yandexMetrikaHeadScripts,
       meta: [
         { name: 'theme-color', content: '#0d0d10' },
         { name: 'color-scheme', content: 'dark' },
@@ -141,7 +169,7 @@ export default defineNuxtConfig({
           headers: {
             'Content-Security-Policy': [
               "default-src 'self'",
-              `script-src ${scriptSrcWithMetrika}`,
+              scriptSrcWithMetrika,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "media-src 'self' https: blob:",
@@ -154,7 +182,7 @@ export default defineNuxtConfig({
           headers: {
             'Content-Security-Policy': [
               "default-src 'self'",
-              `script-src ${scriptSrcWithMetrika}`,
+              scriptSrcWithMetrika,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "media-src 'self' https: blob:",

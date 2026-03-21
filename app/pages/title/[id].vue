@@ -75,13 +75,27 @@
               </p>
 
               <div class="flex flex-wrap items-center gap-3 pt-1">
+                <!-- Main watch button — hidden for AniLibria-only titles (no player) -->
                 <button
+                  v-if="!detail.anilibriaUrl || detail.playerUrl"
                   class="glow-green-sm flex items-center gap-2 rounded-xl bg-green-500 px-6 py-2.5 text-sm font-bold text-black transition-all hover:bg-green-400"
                   @click="handleWatch"
                 >
                   <UIcon name="lucide:play" class="ml-0.5 size-4" />
                   {{ continueProgress ? 'Продолжить' : 'Смотреть' }}
                 </button>
+
+                <!-- AniLibria fallback: open on their site -->
+                <a
+                  v-if="detail.anilibriaUrl"
+                  :href="detail.anilibriaUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="glow-green-sm flex items-center gap-2 rounded-xl bg-green-500 px-6 py-2.5 text-sm font-bold text-black transition-all hover:bg-green-400"
+                >
+                  <UIcon name="lucide:play" class="ml-0.5 size-4" />
+                  Смотреть на AniLibria ↗
+                </a>
 
                 <!-- Library actions -->
                 <AddToListButton
