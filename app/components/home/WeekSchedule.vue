@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ScheduleDay } from '~/types/metadata'
+import type { ScheduleDay, ScheduleRelease } from '~/types/metadata'
 import { navigateToCard } from '~/composables/useMetadata'
 
 const props = defineProps<{
@@ -110,7 +110,18 @@ const DAYS_SKELETON = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
               {{ anime.titleRu || anime.title }}
             </p>
             <p class="text-[11px] text-zinc-600">
-              {{ anime.broadcast?.time ?? '' }}
+              <template v-if="'localTimeLabel' in anime && (anime as ScheduleRelease).localTimeLabel">
+                {{ (anime as ScheduleRelease).localTimeLabel }}
+                <span
+                  v-if="(anime as ScheduleRelease).nextEpisode != null"
+                  class="ml-1 text-zinc-500"
+                >
+                  · с{{ (anime as ScheduleRelease).nextEpisode }}
+                </span>
+              </template>
+              <template v-else>
+                {{ anime.broadcast?.time ?? '' }}
+              </template>
               <span v-if="anime.score" class="ml-2 text-zinc-500">★ {{ anime.score.toFixed(1) }}</span>
             </p>
           </div>

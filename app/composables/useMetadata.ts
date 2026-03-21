@@ -1,4 +1,11 @@
-import type { Collection, HomePageData, NewsItem, NormalizedAnimeCard, ScheduleDay, WatchTarget } from '~/types/metadata'
+import type {
+  Collection,
+  HomePageData,
+  NewsItem,
+  NormalizedAnimeCard,
+  SchedulePageResponse,
+  WatchTarget,
+} from '~/types/metadata'
 
 // ── Metadata card → Kodik ID resolver ────────────────────────────────────
 
@@ -95,28 +102,72 @@ export function useHomeData() {
   return { hero, sections, loading, error, refresh }
 }
 
-// ── Weekly schedule composable ────────────────────────────────────────────
+// ── Schedule page (календарь + неделя + мета-таймзона с бэкенда) ─────────
+
+function emptySchedulePage(tz: string): SchedulePageResponse {
+  return {
+    meta: {
+      timezone: tz,
+      todayDayKey: 'monday',
+      todayLocalDateKey: '',
+      generatedAt: '',
+      source: 'shikimori',
+    },
+    week: [],
+    releases: [],
+    countsByDate: {},
+  }
+}
 
 export function useSchedule() {
   const apiUrl = useApiUrl()
 
-  const todayDayKey = computed(() => {
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-    return days[new Date().getDay()] ?? 'monday'
+  const tzCookie = useCookie<string>('abx-schedule-tz', {
+    default: () => 'Europe/Moscow',
+    maxAge: 60 * 60 * 24 * 365,
   })
 
-  const { data, status, refresh } = useAsyncData<ScheduleDay[]>(
-    'metadata-schedule',
-    () => $fetch<ScheduleDay[]>(`${apiUrl}/metadata/schedule`),
+  onMounted(() => {
+    try {
+      const d = Intl.DateTimeFormat().resolvedOptions().timeZone
+      if (d && d !== tzCookie.value) tzCookie.value = d
+    } catch {
+      /* ignore */
+    }
+  })
+
+  const { data, status, error, refresh } = useAsyncData<SchedulePageResponse>(
+    () => `metadata-schedule-${tzCookie.value}`,
+    () =>
+      $fetch<SchedulePageResponse>(`${apiUrl}/metadata/schedule`, {
+        query: { timezone: tzCookie.value },
+      }),
     {
-      default: () => [],
+      watch: [tzCookie],
+      default: () => emptySchedulePage(tzCookie.value),
     },
   )
 
-  const schedule = computed(() => data.value ?? [])
+  const page = computed(() => data.value ?? emptySchedulePage(tzCookie.value))
+  const schedule = computed(() => page.value.week)
+  const releases = computed(() => page.value.releases)
+  const meta = computed(() => page.value.meta)
+  const countsByDate = computed(() => page.value.countsByDate)
   const loading = computed(() => status.value === 'pending')
+  const todayDayKey = computed(() => page.value.meta.todayDayKey)
 
-  return { schedule, loading, todayDayKey, refresh }
+  return {
+    page,
+    schedule,
+    releases,
+    meta,
+    countsByDate,
+    loading,
+    error,
+    refresh,
+    todayDayKey,
+    timezoneCookie: tzCookie,
+  }
 }
 
 // ── Watch-target composable ───────────────────────────────────────────────

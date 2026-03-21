@@ -33,10 +33,34 @@ export interface HomePageData {
   sections: HomeSection[]
 }
 
+/** Элемент расписания (ответ GET /metadata/schedule) */
+export interface ScheduleRelease extends NormalizedAnimeCard {
+  nextEpisode?: number
+  nextAirAt?: string
+  airTimeKnown?: boolean
+  localDateKey: string
+  localTimeLabel: string
+}
+
 export interface ScheduleDay {
   day: string
   dayKey: string
-  anime: NormalizedAnimeCard[]
+  anime: ScheduleRelease[]
+}
+
+export interface SchedulePageMeta {
+  timezone: string
+  todayDayKey: string
+  todayLocalDateKey: string
+  generatedAt: string
+  source: 'yanitv' | 'shikimori'
+}
+
+export interface SchedulePageResponse {
+  meta: SchedulePageMeta
+  week: ScheduleDay[]
+  releases: ScheduleRelease[]
+  countsByDate: Record<string, number>
 }
 
 export type KindLabel = Record<string, string>
