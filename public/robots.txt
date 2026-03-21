@@ -1,6 +1,15 @@
 User-Agent: *
+Allow: /
 Disallow: /watch/
 Disallow: /profile
 Disallow: /authentication
+Disallow: /admin/
+Disallow: /api/
 
-Sitemap: https://anibox.app/sitemap.xml
+# Allow indexing of catalog, titles, search
+Allow: /catalog
+Allow: /title/
+Allow: /search
+Allow: /schedule
+
+Sitemap: https://ani-box.up.railway.app/sitemap.xml

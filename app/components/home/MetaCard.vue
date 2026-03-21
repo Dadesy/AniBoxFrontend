@@ -66,10 +66,10 @@ const cardW = computed(() => props.size === 'sm' ? 'w-[130px]' : 'w-[150px]')
         >
           <UIcon
             v-if="!navigating"
-            name="i-heroicons-play-solid"
+            name="lucide:play"
             class="ml-0.5 h-4 w-4 text-zinc-900"
           />
-          <UIcon v-else name="i-heroicons-arrow-path" class="h-4 w-4 text-zinc-900 animate-spin" />
+          <UIcon v-else name="lucide:loader-circle" class="h-4 w-4 text-zinc-900 animate-spin" />
         </div>
       </div>
 
@@ -95,7 +95,7 @@ const cardW = computed(() => props.size === 'sm' ? 'w-[130px]' : 'w-[150px]')
         v-if="card.score"
         class="absolute right-1.5 top-1.5 flex items-center gap-0.5 rounded-sm bg-black/65 px-1 py-0.5"
       >
-        <UIcon name="i-heroicons-star-solid" class="h-2.5 w-2.5 text-yellow-400" />
+        <UIcon name="lucide:star" class="h-2.5 w-2.5 fill-current text-yellow-400" />
         <span :class="['text-[10px] font-bold', scoreColor]">{{ card.score.toFixed(1) }}</span>
       </div>
 

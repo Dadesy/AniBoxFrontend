@@ -52,10 +52,10 @@ const kindLabel    = computed(() => KIND_LABELS[props.card.kind ?? ''] ?? props.
         >
           <UIcon
             v-if="!navigating"
-            name="i-heroicons-play-solid"
+            name="lucide:play"
             class="ml-0.5 h-4 w-4 text-white"
           />
-          <UIcon v-else name="i-heroicons-arrow-path" class="h-3.5 w-3.5 animate-spin text-white" />
+          <UIcon v-else name="lucide:loader-circle" class="h-3.5 w-3.5 animate-spin text-white" />
         </div>
       </div>
 

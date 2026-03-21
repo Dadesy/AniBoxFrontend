@@ -31,7 +31,7 @@
 
       <!-- Score badge -->
       <div v-if="content.score" class="absolute top-2 right-2 flex items-center gap-0.5 rounded-sm bg-black/65 px-1 py-0.5">
-        <UIcon name="i-heroicons-star-solid" class="h-2.5 w-2.5 text-yellow-400" />
+        <UIcon name="lucide:star" class="h-2.5 w-2.5 fill-current text-yellow-400" />
         <span :class="['text-[10px] font-bold', scoreColor]">{{ content.score.toFixed(1) }}</span>
       </div>
 

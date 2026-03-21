@@ -122,10 +122,10 @@ const episodeLabel = computed(() => {
           >
             <UIcon
               v-if="!navigating"
-              name="i-heroicons-play-solid"
+              name="lucide:play"
               class="size-3.5"
             />
-            <UIcon v-else name="i-heroicons-arrow-path" class="size-3.5 animate-spin" />
+            <UIcon v-else name="lucide:loader-circle" class="size-3.5 animate-spin" />
             {{ navigating ? 'Загрузка...' : 'Смотреть' }}
           </button>
 

@@ -1,6 +1,6 @@
 export interface NormalizedAnimeCard {
   id: string
-  source: 'shikimori'
+  source: 'shikimori' | 'anilibria' | 'yanitv'
   externalId?: string
   /** Relation label for related anime section (e.g. "Продолжение", "Приквел") */
   relation?: string
@@ -22,7 +22,7 @@ export interface NormalizedAnimeCard {
 export interface HomeSection {
   id: string
   title: string
-  source: 'shikimori'
+  source: 'shikimori' | 'anilibria' | 'yanitv'
   items: NormalizedAnimeCard[]
 }
 

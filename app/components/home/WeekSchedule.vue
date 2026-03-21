@@ -116,7 +116,7 @@ const DAYS_SKELETON = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
           </div>
 
           <UIcon
-            name="i-heroicons-chevron-right"
+            name="lucide:chevron-right"
             class="h-4 w-4 flex-shrink-0 text-zinc-700 transition-colors group-hover:text-zinc-400"
           />
         </button>

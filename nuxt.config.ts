@@ -20,16 +20,45 @@ function getApiOrigin(value: string): string | null {
 }
 
 const apiOrigin = getApiOrigin(rawApiUrl);
-const defaultConnectSrc = ["'self'", ...(apiOrigin ? [apiOrigin] : [])];
+/** Yandex.Metrika: tag.js, счётчик, вебвизор */
+const yandexMetrikaOrigins = ['https://mc.yandex.ru', 'https://yastatic.net'] as const;
+const defaultConnectSrc = [
+  "'self'",
+  ...(apiOrigin ? [apiOrigin] : []),
+  'https://anilibria.top', // AniLibria public API — fresh releases section
+  ...yandexMetrikaOrigins,
+];
 const watchConnectSrc = [
   ...defaultConnectSrc,
   'https://kodik.info',
   'https://kodik.cc',
   'https://kodik.biz',
 ];
+const scriptSrcWithMetrika = ["'self'", "'unsafe-inline'", ...yandexMetrikaOrigins].join(' ');
+const frameSrcWithMetrikaWatch = [
+  "'self'",
+  'https://kodik.info',
+  'https://kodik.cc',
+  'https://kodik.biz',
+  ...yandexMetrikaOrigins,
+].join(' ');
+/** Без 'none': вебвизор Метрики грузит iframe с mc.yandex.ru */
+const frameSrcWithMetrikaDefault = [...yandexMetrikaOrigins].join(' ');
 
 export default defineNuxtConfig({
   modules: ['@nuxt/ui'],
+
+  // ── Icons — bundle lucide locally so no CDN requests (CSP-safe) ────────────
+  icon: {
+    serverBundle: {
+      collections: ['lucide'],
+    },
+    clientBundle: {
+      scan: true,              // auto-detect icons used in .vue files
+      includeCustomCollections: true,
+    },
+    provider: 'server',        // serve icons from SSR, no external CDN calls
+  },
   components: [
     {
       path: '~/app/components',
@@ -66,7 +95,9 @@ export default defineNuxtConfig({
     apiUrlInternal: process.env.NUXT_API_URL_INTERNAL ?? process.env.NUXT_PUBLIC_API_URL ?? 'http://localhost:8080/api',
     public: {
       apiUrl: process.env.NUXT_PUBLIC_API_URL ?? 'http://localhost:8080/api',
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'https://anibox.app',
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'https://ani-box.up.railway.app',
+      /** Пустая строка / 0 — отключить счётчик */
+      yandexMetrikaId: process.env.NUXT_PUBLIC_YANDEX_METRIKA_ID ?? '108180420',
     },
   },
 
@@ -81,11 +112,23 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico', sizes: 'any' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
         { rel: 'manifest', href: '/site.webmanifest' },
+        { rel: 'preconnect', href: 'https://anilibria.top' },
       ],
       meta: [
         { name: 'theme-color', content: '#0d0d10' },
         { name: 'color-scheme', content: 'dark' },
         { name: 'format-detection', content: 'telephone=no' },
+        // Default OG tags (overridden per-page via useSeoMeta)
+        { property: 'og:type', content: 'website' },
+        { property: 'og:locale', content: 'ru_RU' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        // Mobile web app
+        { name: 'mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+        { name: 'apple-mobile-web-app-title', content: 'AniBox' },
+        // Yandex verification (add your token after registration)
+        // { name: 'yandex-verification', content: 'YOUR_TOKEN' },
       ],
     },
   },
@@ -98,11 +141,11 @@ export default defineNuxtConfig({
           headers: {
             'Content-Security-Policy': [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline'",
+              `script-src ${scriptSrcWithMetrika}`,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "media-src 'self' https: blob:",
-              "frame-src 'self' https://kodik.info https://kodik.cc https://kodik.biz",
+              `frame-src ${frameSrcWithMetrikaWatch}`,
               `connect-src ${watchConnectSrc.join(' ')}`,
             ].join('; '),
           },
@@ -111,11 +154,11 @@ export default defineNuxtConfig({
           headers: {
             'Content-Security-Policy': [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline'",
+              `script-src ${scriptSrcWithMetrika}`,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "media-src 'self' https: blob:",
-              "frame-src 'none'",
+              `frame-src ${frameSrcWithMetrikaDefault}`,
               `connect-src ${defaultConnectSrc.join(' ')}`,
             ].join('; '),
             'X-Frame-Options': 'DENY',

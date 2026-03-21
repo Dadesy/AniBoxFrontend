@@ -28,18 +28,21 @@ export async function resolveContentCard(
 // ── Navigate to a metadata card ───────────────────────────────────────────
 
 export async function navigateToCard(card: NormalizedAnimeCard): Promise<void> {
+  // Fast path: externalId already resolved by the backend (attachPlayableIds).
+  // Navigate instantly — zero extra API calls, no spinner delay.
+  if (card.externalId) {
+    await navigateTo(`/title/${encodeURIComponent(card.externalId)}`)
+    return
+  }
+
+  // Slow path: card came without externalId (rare) — ask backend to resolve it.
   const resolved = await resolveContentCard(card)
   if (resolved) {
     await navigateTo(`/title/${encodeURIComponent(resolved.id)}`)
     return
   }
 
-  if (card.externalId) {
-    await navigateTo(`/title/${encodeURIComponent(card.externalId)}`)
-    return
-  }
-
-  // Fallback: search by title
+  // Fallback: title search
   const q = card.titleRu || card.title
   await navigateTo(`/search?q=${encodeURIComponent(q)}`)
 }

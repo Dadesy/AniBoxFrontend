@@ -108,7 +108,7 @@ async function confirmUpload() {
               class="flex h-8 w-8 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-white/8 hover:text-white"
               @click="emit('close')"
             >
-              <UIcon name="i-heroicons-x-mark" class="h-5 w-5" />
+              <UIcon name="lucide:x" class="h-5 w-5" />
             </button>
           </div>
 
@@ -150,7 +150,7 @@ async function confirmUpload() {
                   class="absolute inset-0 flex items-center justify-center bg-green-500/20"
                 >
                   <div class="flex h-6 w-6 items-center justify-center rounded-full bg-green-500">
-                    <UIcon name="i-heroicons-check" class="h-4 w-4 text-white" />
+                    <UIcon name="lucide:check" class="h-4 w-4 text-white" />
                   </div>
                 </div>
               </button>
@@ -192,11 +192,11 @@ async function confirmUpload() {
                   class="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white/60 hover:text-white"
                   @click="previewUrl = null; uploadSelectedFile = null"
                 >
-                  <UIcon name="i-heroicons-x-mark" class="h-4 w-4" />
+                  <UIcon name="lucide:x" class="h-4 w-4" />
                 </button>
               </template>
               <template v-else>
-                <UIcon name="i-heroicons-cloud-arrow-up" class="mb-3 h-10 w-10 text-white/20" />
+                <UIcon name="lucide:cloud-upload" class="mb-3 h-10 w-10 text-white/20" />
                 <p class="text-sm font-medium text-white/60">
                   Перетащите файл или
                   <button
@@ -230,7 +230,7 @@ async function confirmUpload() {
                 :disabled="!uploadSelectedFile || uploading"
                 @click="confirmUpload"
               >
-                <UIcon v-if="uploading" name="i-heroicons-arrow-path" class="h-4 w-4 animate-spin" />
+                <UIcon v-if="uploading" name="lucide:loader-circle" class="h-4 w-4 animate-spin" />
                 {{ uploading ? 'Загрузка...' : 'Сохранить' }}
               </button>
             </div>
