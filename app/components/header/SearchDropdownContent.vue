@@ -102,6 +102,6 @@ function typeLabel(type: string): string {
 <style scoped>
 .result-row:hover { background: rgba(255, 255, 255, 0.04); }
 
-:global(html.light) .result-row:hover { background: rgba(0, 0, 0, 0.04); }
-:global(html.light) .result-row p.text-white { color: #1e293b; }
+:global(html.light) .result-row:hover { background: rgba(15, 23, 42, 0.04); }
+:global(html.light) .result-row p.text-white { color: #0f172a; }
 </style>

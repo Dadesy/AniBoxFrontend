@@ -45,7 +45,7 @@ function cycle() {
 .theme-btn { color: #71717a; }
 .theme-btn:hover { background: rgba(255,255,255,0.06); color: #e4e4e7; }
 
-:global(html.light) .theme-btn:hover { background: rgba(0,0,0,0.06); color: #18181b; }
+:global(html.light) .theme-btn:hover { background: rgba(15, 23, 42, 0.06); color: #0f172a; }
 
 .icon-swap-enter-active,
 .icon-swap-leave-active { transition: opacity 0.1s ease, transform 0.1s ease; }

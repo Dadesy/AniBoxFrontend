@@ -18,6 +18,17 @@ async function handleClick() {
   navigating.value = false
 }
 
+const { navigateToWatch } = useWatchTarget()
+const watchNavigating = ref(false)
+
+async function handleWatchClick(e: Event) {
+  e.stopPropagation()
+  if (watchNavigating.value || !props.card.externalId) return
+  watchNavigating.value = true
+  await navigateToWatch(props.card.externalId)
+  watchNavigating.value = false
+}
+
 const displayTitle = computed(() => props.card.titleRu || props.card.title)
 const kindLabel    = computed(() => KIND_LABELS[props.card.kind ?? ''] ?? props.card.kind?.toUpperCase() ?? '')
 const isOngoing    = computed(() => props.card.status === 'ongoing' || props.card.status === 'Currently Airing')
@@ -60,16 +71,33 @@ const cardW = computed(() => props.size === 'sm' ? 'w-[130px]' : 'w-[150px]')
 
       <!-- Hover overlay: subtle dark tint + play icon -->
       <div class="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/40 transition-colors duration-200">
+        <!-- Play/navigate button (center) -->
         <div
-          class="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200"
-          :class="{ 'animate-pulse opacity-100 scale-100': navigating }"
+          class="flex flex-col items-center gap-1.5 opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200"
+          :class="{ 'opacity-100 scale-100': navigating || watchNavigating }"
         >
-          <UIcon
-            v-if="!navigating"
-            name="lucide:play"
-            class="ml-0.5 h-4 w-4 text-zinc-900"
-          />
-          <UIcon v-else name="lucide:loader-circle" class="h-4 w-4 text-zinc-900 animate-spin" />
+          <!-- Main play button -->
+          <div
+            class="flex h-10 w-10 items-center justify-center rounded-full bg-white/90"
+            :class="{ 'animate-pulse': navigating }"
+          >
+            <UIcon
+              v-if="!navigating && !watchNavigating"
+              name="lucide:play"
+              class="ml-0.5 h-4 w-4 text-zinc-900"
+            />
+            <UIcon v-else name="lucide:loader-circle" class="h-4 w-4 text-zinc-900 animate-spin" />
+          </div>
+
+          <!-- "Смотреть" quick-launch button — only shown if externalId is present -->
+          <button
+            v-if="card.externalId && !navigating"
+            class="rounded-full bg-emerald-500 px-2.5 py-0.5 text-[10px] font-bold text-black shadow-md transition-colors hover:bg-emerald-400 active:scale-95"
+            :class="{ 'opacity-50 pointer-events-none': watchNavigating }"
+            @click.stop="handleWatchClick"
+          >
+            {{ watchNavigating ? '…' : 'Смотреть' }}
+          </button>
         </div>
       </div>
 

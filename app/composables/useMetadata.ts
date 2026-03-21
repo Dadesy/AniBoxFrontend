@@ -1,4 +1,4 @@
-import type { HomePageData, NormalizedAnimeCard, ScheduleDay } from '~/types/metadata'
+import type { Collection, HomePageData, NewsItem, NormalizedAnimeCard, ScheduleDay, WatchTarget } from '~/types/metadata'
 
 // ── Metadata card → Kodik ID resolver ────────────────────────────────────
 
@@ -117,4 +117,60 @@ export function useSchedule() {
   const loading = computed(() => status.value === 'pending')
 
   return { schedule, loading, todayDayKey, refresh }
+}
+
+// ── Watch-target composable ───────────────────────────────────────────────
+
+export function useWatchTarget() {
+  const apiUrl = useApiUrl()
+  const router = useRouter()
+
+  async function navigateToWatch(externalId: string): Promise<void> {
+    try {
+      const target = await $fetch<WatchTarget>(`${apiUrl}/anime/${encodeURIComponent(externalId)}/watch-target`)
+      if (target.hasAvailablePlayer) {
+        await navigateTo(target.watchUrl)
+      } else {
+        await navigateTo(`/title/${encodeURIComponent(externalId)}`)
+      }
+    } catch {
+      await navigateTo(`/title/${encodeURIComponent(externalId)}`)
+    }
+  }
+
+  return { navigateToWatch }
+}
+
+// ── Collections composable ────────────────────────────────────────────────
+
+export function useCollections() {
+  const apiUrl = useApiUrl()
+
+  const { data, status } = useAsyncData<Collection[]>(
+    'metadata-collections',
+    () => $fetch<Collection[]>(`${apiUrl}/metadata/collections`),
+    { default: () => [] },
+  )
+
+  return {
+    collections: computed(() => data.value ?? []),
+    loading: computed(() => status.value === 'pending'),
+  }
+}
+
+// ── News composable ───────────────────────────────────────────────────────
+
+export function useNews(limit = 10) {
+  const apiUrl = useApiUrl()
+
+  const { data, status } = useAsyncData<NewsItem[]>(
+    `metadata-news-${limit}`,
+    () => $fetch<NewsItem[]>(`${apiUrl}/metadata/news?limit=${limit}`),
+    { default: () => [] },
+  )
+
+  return {
+    news: computed(() => data.value ?? []),
+    loading: computed(() => status.value === 'pending'),
+  }
 }

@@ -8,17 +8,17 @@
 
       <!-- Left: Logo + Nav ─────────────────────────────────────── -->
       <div class="absolute left-0 top-0 h-full flex items-center pl-4 sm:pl-6 gap-1 z-10">
-        <NuxtLink to="/" class="flex items-baseline gap-0 mr-3 shrink-0 group">
-          <span class="text-[20px] font-extrabold tracking-tight text-white">Ani</span>
-          <span class="text-[20px] font-extrabold tracking-tight text-green-400 group-hover:text-green-300 transition-colors">Box</span>
+        <NuxtLink to="/" class="group mr-3 flex shrink-0 items-baseline gap-0">
+          <span class="logo-ani text-[20px] font-extrabold tracking-tight">Ani</span>
+          <span class="logo-box text-[20px] font-extrabold tracking-tight transition-opacity group-hover:opacity-90">Box</span>
         </NuxtLink>
         <nav class="hidden sm:flex items-center gap-0.5">
           <NuxtLink
             v-for="link in navLinks"
             :key="link.to"
             :to="link.to"
-            class="px-3 py-1.5 text-[13px] font-medium rounded-lg transition-colors text-slate-400 hover:text-white hover:bg-white/5"
-            active-class="!text-white !bg-white/8"
+            class="rounded-lg px-3 py-1.5 text-[13px] font-medium text-slate-400 transition-colors hover:bg-[var(--accent-green-softer)] hover:text-[var(--logo-text)]"
+            active-class="nav-link-active"
           >
             {{ link.label }}
           </NuxtLink>
@@ -166,7 +166,7 @@
         <template v-else>
           <NuxtLink
             to="/authentication"
-            class="inline-flex items-center h-9 px-4 rounded-xl bg-green-500 hover:bg-green-400 text-black text-[13px] font-semibold transition-all glow-green-sm"
+            class="glow-green-sm inline-flex h-9 items-center rounded-xl bg-green-500 px-4 text-[13px] font-semibold text-emerald-950 transition-all hover:bg-green-400"
           >
             Войти
           </NuxtLink>
@@ -401,8 +401,7 @@ async function handleLogout(): Promise<void> {
 <style scoped>
 /* ── Header backgrounds ──────────────────────────────────────────────────── */
 .header--top {
-  /* subtle gradient so controls are visible over hero backgrounds */
-  background: linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.45) 0%, transparent 100%);
 }
 .header--scrolled {
   background: var(--header-scrolled-bg, rgba(17, 17, 19, 0.92));
@@ -412,12 +411,12 @@ async function handleLogout(): Promise<void> {
 }
 
 :global(html.light) .header--top {
-  background: linear-gradient(to bottom, rgba(63, 55, 47, 0.16) 0%, transparent 100%);
+  background: linear-gradient(to bottom, rgba(15, 23, 42, 0.08) 0%, transparent 100%);
 }
 :global(html.light) header.header--scrolled {
-  background: rgba(238, 231, 221, 0.94);
-  border-bottom-color: rgba(79, 70, 61, 0.1);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+  background: var(--header-scrolled-bg, rgba(255, 255, 255, 0.82));
+  border-bottom-color: var(--header-scrolled-border, rgba(15, 23, 42, 0.08));
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.05);
 }
 
 /* ── Search input ────────────────────────────────────────────────────────── */
@@ -428,18 +427,18 @@ async function handleLogout(): Promise<void> {
 .search-input:focus { outline: none; }
 .search-input--active {
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(74, 222, 128, 0.4);
-  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.08);
+  border-color: var(--accent-green-border);
+  box-shadow: 0 0 0 3px var(--accent-green-soft);
 }
 
 :global(html.light) .search-input {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(15, 23, 42, 0.1);
 }
 :global(html.light) .search-input--active {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(34, 197, 94, 0.5);
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.08);
+  background: #ffffff;
+  border-color: var(--accent-green-border);
+  box-shadow: 0 0 0 3px var(--accent-green-soft);
 }
 
 /* ── Dropdown panels ─────────────────────────────────────────────────────── */
@@ -448,15 +447,19 @@ async function handleLogout(): Promise<void> {
   background: rgba(22, 22, 24, 0.97);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--cinema-border);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 :global(html.light) .search-dropdown,
 :global(html.light) .profile-dropdown {
-  background: rgba(252, 253, 255, 0.97);
-  border-color: rgba(0, 0, 0, 0.09);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(250, 250, 250, 0.98));
+  border-color: var(--cinema-border);
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.1),
+    0 0 0 1px rgba(15, 23, 42, 0.05);
 }
 
 /* ── Transitions ─────────────────────────────────────────────────────────── */

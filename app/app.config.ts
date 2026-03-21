@@ -1,7 +1,9 @@
 export default defineAppConfig({
   ui: {
     colors: {
-      neutral: 'zinc',
+      primary: 'green',
+      /* slate лучше ложится на холодную светлую тему (как у стриминг-референсов) */
+      neutral: 'slate',
     },
   },
 });

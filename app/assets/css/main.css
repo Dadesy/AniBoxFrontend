@@ -6,127 +6,282 @@
   font-weight: 400;
 }
 
-/* ── Dark theme ──────────────────────────────────────────────────────────── */
-/* Applied when: preference=dark, or preference=system + OS dark             */
+/*
+ * База: нейтральные чёрный / белый / серый (--cinema-*).
+ * Зелёный только в --accent-* (логотип «Box», кнопки, активные пункты, фокус).
+ */
+html {
+  --cinema-base: #111113;
+  --cinema-surface: #18181b;
+  --cinema-card: #1c1c1f;
+  --cinema-elevated: #232326;
+  --accent-green: #86efac;
+  --accent-green-soft: rgba(74, 222, 128, 0.14);
+  --accent-green-softer: rgba(74, 222, 128, 0.07);
+  --accent-green-border: rgba(74, 222, 128, 0.38);
+  --logo-text: #fafafa;
+  /* Только корень: не трогаем * — иначе ломается flex/размеры у внутренних скроллов (Nuxt UI). */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  /*
+   * Не стилизуем ::-webkit-scrollbar на <html>: в связке с color-scheme: light (светлая тема)
+   * WebKit часто переключает скроллбар в «классический» режим и меняет ширину layout viewport —
+   * блоки с max-w + mx-auto визуально «прилипают» влево, тогда как в тёмной теме всё ок.
+   */
+}
+
+/* ── Dark theme — нейтральный zinc ───────────────────────────────────────── */
 html.dark {
   color-scheme: dark;
-  --color-cinema-base:     #111113;
-  --color-cinema-surface:  #18181b;
-  --color-cinema-card:     #1c1c1f;
-  --color-cinema-elevated: #232326;
-  --header-scrolled-bg:    rgba(17, 17, 19, 0.92);
+  --cinema-base: #111113;
+  --cinema-surface: #18181b;
+  --cinema-card: #1c1c1f;
+  --cinema-elevated: #232326;
+  --header-scrolled-bg: rgba(17, 17, 19, 0.92);
   --header-scrolled-border: rgba(255, 255, 255, 0.06);
-  --cinema-border:         rgba(255, 255, 255, 0.07);
-  --cinema-border-soft:    rgba(255, 255, 255, 0.04);
+  --cinema-border: rgba(255, 255, 255, 0.07);
+  --cinema-border-soft: rgba(255, 255, 255, 0.04);
 
-  --ui-bg:           #111113;
-  --ui-bg-elevated:  #1c1c1f;
-  --ui-bg-accented:  #232326;
-  --ui-border:       rgba(255, 255, 255, 0.07);
-  --ui-border-muted: rgba(255, 255, 255, 0.04);
-  --ui-text-muted:   #71717a;
-  --ui-text-dimmed:  #52525b;
+  --accent-green: #86efac;
+  --accent-green-soft: rgba(74, 222, 128, 0.14);
+  --accent-green-softer: rgba(74, 222, 128, 0.07);
+  --accent-green-border: rgba(74, 222, 128, 0.38);
+  --logo-text: #fafafa;
+
+  --ui-bg: var(--cinema-base);
+  --ui-bg-elevated: var(--cinema-card);
+  --ui-bg-accented: var(--cinema-elevated);
+  --ui-border: var(--cinema-border);
+  --ui-border-muted: var(--cinema-border-soft);
+  --ui-text-muted: #a1a1aa;
+  --ui-text-dimmed: #71717a;
 }
 
-/* ── Light theme ─────────────────────────────────────────────────────────── */
+/* ── Light theme — нейтральный серый / белый ─────────────────────────────── */
 html.light {
-  color-scheme: light;
-  --color-cinema-base:     #ede7dd;
-  --color-cinema-surface:  #f6f1e8;
-  --color-cinema-card:     #e9e0d2;
-  --color-cinema-elevated: #ddd2bf;
-  --header-scrolled-bg:    rgba(238, 231, 221, 0.94);
-  --header-scrolled-border: rgba(79, 70, 61, 0.1);
-  --cinema-border:         rgba(55, 65, 81, 0.12);
-  --cinema-border-soft:    rgba(55, 65, 81, 0.07);
+  /*
+   * Только «light» на корне даёт WebKit другой скролл/viewport. Оставляем оба режима —
+   * предпочтение светлых страниц через body (Nuxt UI scheme-light), нативные виджеты нормальны.
+   */
+  color-scheme: light dark;
+  --cinema-base: #f4f4f5;
+  --cinema-surface: #fafafa;
+  --cinema-card: #ffffff;
+  --cinema-elevated: #e4e4e7;
+  --header-scrolled-bg: rgba(255, 255, 255, 0.9);
+  --header-scrolled-border: rgba(15, 23, 42, 0.08);
+  --cinema-border: rgba(15, 23, 42, 0.1);
+  --cinema-border-soft: rgba(15, 23, 42, 0.06);
 
-  --ui-bg:           #ede7dd;
-  --ui-bg-elevated:  #f6f1e8;
-  --ui-bg-accented:  #e9e0d2;
-  --ui-border:       rgba(55, 65, 81, 0.12);
-  --ui-border-muted: rgba(55, 65, 81, 0.07);
-  --ui-text-muted:   #4f463d;
-  --ui-text-dimmed:  #72675d;
+  --accent-green: #22c55e;
+  --accent-green-soft: rgba(34, 197, 94, 0.12);
+  --accent-green-softer: rgba(34, 197, 94, 0.06);
+  --accent-green-border: rgba(34, 197, 94, 0.4);
+  --logo-text: #18181b;
+
+  --ui-bg: var(--cinema-base);
+  --ui-bg-elevated: #ffffff;
+  --ui-bg-accented: var(--cinema-elevated);
+  --ui-border: var(--cinema-border);
+  --ui-border-muted: var(--cinema-border-soft);
+  --ui-text-muted: #71717a;
+  --ui-text-dimmed: #a1a1aa;
+
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }
 
-/* ── System preference fallback (when no class yet on html) ──────────────── */
+/*
+ * Светлая тема: цепочка на полную ширину + обёртка страницы под <main>.
+ * Не используем overflow-x: hidden на body и scrollbar-gutter: both-edges — это давало «узкую» полосу и mx-auto «влево».
+ */
+html.light,
+html.light body {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+html.light #__nuxt {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+html.light .site-root,
+html.light .site-shell {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Только основной layout (фон cinema-base). Не трогаем authentication и др. layout с max-w на <main> */
+html.light .site-shell.bg-cinema-base > main {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+html.light .site-shell.bg-cinema-base > main > * {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box;
+}
+
+@media (prefers-color-scheme: light) {
+  html:not(.dark),
+  html:not(.dark) body {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  html:not(.dark) #__nuxt {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  html:not(.dark) .site-root,
+  html:not(.dark) .site-shell {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  html:not(.dark) .site-shell.bg-cinema-base > main {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  html:not(.dark) .site-shell.bg-cinema-base > main > * {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box;
+  }
+}
+
+/* ── System preference fallback ───────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   html:not(.light) {
     color-scheme: dark;
-    --color-cinema-base:     #111113;
-    --color-cinema-surface:  #18181b;
-    --color-cinema-card:     #1c1c1f;
-    --color-cinema-elevated: #232326;
-    --header-scrolled-bg:    rgba(17, 17, 19, 0.92);
+    --cinema-base: #111113;
+    --cinema-surface: #18181b;
+    --cinema-card: #1c1c1f;
+    --cinema-elevated: #232326;
+    --header-scrolled-bg: rgba(17, 17, 19, 0.92);
     --header-scrolled-border: rgba(255, 255, 255, 0.06);
-    --cinema-border:         rgba(255, 255, 255, 0.07);
-    --cinema-border-soft:    rgba(255, 255, 255, 0.04);
-
-    --ui-bg:           #111113;
-    --ui-bg-elevated:  #1c1c1f;
-    --ui-bg-accented:  #232326;
-    --ui-border:       rgba(255, 255, 255, 0.07);
-    --ui-border-muted: rgba(255, 255, 255, 0.04);
-    --ui-text-muted:   #71717a;
-    --ui-text-dimmed:  #52525b;
+    --cinema-border: rgba(255, 255, 255, 0.07);
+    --cinema-border-soft: rgba(255, 255, 255, 0.04);
+    --accent-green: #86efac;
+    --accent-green-soft: rgba(74, 222, 128, 0.14);
+    --accent-green-softer: rgba(74, 222, 128, 0.07);
+    --accent-green-border: rgba(74, 222, 128, 0.38);
+    --logo-text: #fafafa;
+    --ui-bg: var(--cinema-base);
+    --ui-bg-elevated: var(--cinema-card);
+    --ui-bg-accented: var(--cinema-elevated);
+    --ui-border: var(--cinema-border);
+    --ui-border-muted: var(--cinema-border-soft);
+    --ui-text-muted: #a1a1aa;
+    --ui-text-dimmed: #71717a;
   }
 }
 
 @media (prefers-color-scheme: light) {
   html:not(.dark) {
-    color-scheme: light;
-    --color-cinema-base:     #ede7dd;
-    --color-cinema-surface:  #f6f1e8;
-    --color-cinema-card:     #e9e0d2;
-    --color-cinema-elevated: #ddd2bf;
-    --header-scrolled-bg:    rgba(238, 231, 221, 0.94);
-    --header-scrolled-border: rgba(79, 70, 61, 0.1);
-    --cinema-border:         rgba(55, 65, 81, 0.12);
-    --cinema-border-soft:    rgba(55, 65, 81, 0.07);
-
-    --ui-bg:           #ede7dd;
-    --ui-bg-elevated:  #f6f1e8;
-    --ui-bg-accented:  #e9e0d2;
-    --ui-border:       rgba(55, 65, 81, 0.12);
-    --ui-border-muted: rgba(55, 65, 81, 0.07);
-    --ui-text-muted:   #4f463d;
-    --ui-text-dimmed:  #72675d;
+    color-scheme: light dark;
+    --cinema-base: #f4f4f5;
+    --cinema-surface: #fafafa;
+    --cinema-card: #ffffff;
+    --cinema-elevated: #e4e4e7;
+    --header-scrolled-bg: rgba(255, 255, 255, 0.9);
+    --header-scrolled-border: rgba(15, 23, 42, 0.08);
+    --cinema-border: rgba(15, 23, 42, 0.1);
+    --cinema-border-soft: rgba(15, 23, 42, 0.06);
+    --accent-green: #22c55e;
+    --accent-green-soft: rgba(34, 197, 94, 0.12);
+    --accent-green-softer: rgba(34, 197, 94, 0.06);
+    --accent-green-border: rgba(34, 197, 94, 0.4);
+    --logo-text: #18181b;
+    --ui-bg: var(--cinema-base);
+    --ui-bg-elevated: #ffffff;
+    --ui-bg-accented: var(--cinema-elevated);
+    --ui-border: var(--cinema-border);
+    --ui-border-muted: var(--cinema-border-soft);
+    --ui-text-muted: #71717a;
+    --ui-text-dimmed: #a1a1aa;
   }
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--color-cinema-base);
+  min-height: 100dvh;
+  background: var(--cinema-base);
   color: #e4e4e7;
-  transition: background 0.18s ease, color 0.18s ease;
+  transition: background 0.22s ease, color 0.22s ease;
 }
 
-html.light body { color: #18181b; }
+#__nuxt {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
 
-/* ── Scrollbar ───────────────────────────────────────────────────────────── */
-* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent; }
-*::-webkit-scrollbar { width: 4px; height: 4px; }
-*::-webkit-scrollbar-track { background: transparent; }
-*::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
-*::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }
-.scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
-.scrollbar-hide::-webkit-scrollbar { display: none; }
+html.light body {
+  color: #18181b;
+}
 
-html.light * { scrollbar-color: rgba(0,0,0,0.12) transparent; }
-html.light *::-webkit-scrollbar-thumb { background: rgba(68,64,60,0.16); }
-html.light *::-webkit-scrollbar-thumb:hover { background: rgba(68,64,60,0.24); }
+/* ── Шапка: логотип и активные пункты ───────────────────────────────────── */
+.logo-ani {
+  color: var(--logo-text) !important;
+}
+.logo-box {
+  color: var(--accent-green) !important;
+}
+.nav-link-active {
+  color: var(--accent-green) !important;
+  background-color: var(--accent-green-soft) !important;
+}
 
-/* ── Glow utilities ───────────────────────────────────────────────────────── */
-.glow-green    { box-shadow: 0 0 24px rgba(74,222,128,0.3), 0 0 60px rgba(74,222,128,0.1); }
-.glow-green-sm { box-shadow: 0 0 10px rgba(74,222,128,0.2); }
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
 
-/* ── Glass ───────────────────────────────────────────────────────────────── */
+/* ── Glow — только акцент (кнопки) ────────────────────────────────────────── */
+.glow-green {
+  box-shadow:
+    0 0 24px rgba(74, 222, 128, 0.28),
+    0 0 60px rgba(74, 222, 128, 0.1);
+}
+.glow-green-sm {
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.2);
+}
+
+/* ── Glass — нейтральный ─────────────────────────────────────────────────── */
 .glass {
   background: rgba(28, 28, 31, 0.78);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--cinema-border);
 }
 .glass-dark {
   background: rgba(17, 17, 19, 0.92);
@@ -135,196 +290,267 @@ html.light *::-webkit-scrollbar-thumb:hover { background: rgba(68,64,60,0.24); }
 }
 
 html.light .glass {
-  background: rgba(244, 238, 227, 0.84);
-  border-color: rgba(55, 65, 81, 0.1);
+  background: rgba(255, 255, 255, 0.82);
+  border-color: var(--cinema-border);
 }
 html.light .glass-dark {
-  background: rgba(237, 229, 215, 0.92);
+  background: rgba(255, 255, 255, 0.92);
+  border-color: var(--cinema-border-soft);
 }
 
 /* ── Animations ──────────────────────────────────────────────────────────── */
-@keyframes fade-up  { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-@keyframes fade-in  { from { opacity:0; } to { opacity:1; } }
-@keyframes shimmer  { 0% { background-position:-200% 0; } 100% { background-position:200% 0; } }
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
 
-.animate-fade-up { animation: fade-up  0.5s ease both; }
-.animate-fade-in { animation: fade-in  0.35s ease both; }
-.delay-100 { animation-delay: 0.1s; }
-.delay-200 { animation-delay: 0.2s; }
-.delay-300 { animation-delay: 0.3s; }
+.animate-fade-up {
+  animation: fade-up 0.5s ease both;
+}
+.animate-fade-in {
+  animation: fade-in 0.35s ease both;
+}
+.delay-100 {
+  animation-delay: 0.1s;
+}
+.delay-200 {
+  animation-delay: 0.2s;
+}
+.delay-300 {
+  animation-delay: 0.3s;
+}
 
-/* ── Skeleton shimmer ────────────────────────────────────────────────────── */
+/* ── Skeleton shimmer — нейтральный ──────────────────────────────────────── */
 .skeleton-shine {
-  background: linear-gradient(90deg,
-    rgba(255,255,255,0.03) 25%,
-    rgba(255,255,255,0.07) 50%,
-    rgba(255,255,255,0.03) 75%
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.07) 50%,
+    rgba(255, 255, 255, 0.03) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.6s infinite;
 }
 
 html.light .skeleton-shine {
-  background: linear-gradient(90deg,
-    rgba(120,113,108,0.06) 25%,
-    rgba(120,113,108,0.13) 50%,
-    rgba(120,113,108,0.06) 75%
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.04) 25%,
+    rgba(0, 0, 0, 0.08) 50%,
+    rgba(0, 0, 0, 0.04) 75%
   );
   background-size: 200% 100%;
 }
 
-/* ── Light theme contrast overrides ─────────────────────────────────────── */
+/* ── Light theme: переопределения Tailwind ──────────────────────────────── */
 html.light .search-dropdown {
-  background:
-    linear-gradient(180deg, rgba(246, 241, 232, 0.98), rgba(236, 227, 212, 0.98));
-  border-color: rgba(55, 65, 81, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(250, 250, 250, 0.98));
+  border-color: var(--cinema-border);
   box-shadow:
-    0 20px 50px rgba(120, 113, 108, 0.12),
-    0 6px 20px rgba(120, 113, 108, 0.08);
+    0 20px 50px rgba(15, 23, 42, 0.08),
+    0 6px 20px rgba(15, 23, 42, 0.05);
 }
 
 html.light .search-input {
-  background: rgba(246, 241, 232, 0.92);
-  border: 1px solid rgba(55, 65, 81, 0.1);
-  color: #18181b;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--cinema-border);
+  color: var(--logo-text);
 }
 
 html.light .search-input::placeholder {
-  color: #78716c;
+  color: var(--ui-text-dimmed);
 }
 
 html.light .text-white,
 html.light .hover\:text-white:hover,
 html.light .group:hover .group-hover\:text-white {
-  color: #18181b !important;
+  color: var(--logo-text) !important;
 }
 
-html.light .text-white\/90 { color: rgba(24, 24, 27, 0.88) !important; }
-html.light .text-white\/80 { color: rgba(24, 24, 27, 0.78) !important; }
-html.light .text-white\/70 { color: rgba(41, 37, 36, 0.72) !important; }
-html.light .text-white\/60 { color: rgba(68, 64, 60, 0.64) !important; }
-html.light .text-white\/50 { color: rgba(87, 83, 78, 0.58) !important; }
-html.light .text-white\/45 { color: rgba(87, 83, 78, 0.5) !important; }
-html.light .text-white\/40 { color: rgba(120, 113, 108, 0.82) !important; }
-html.light .text-white\/35 { color: rgba(120, 113, 108, 0.72) !important; }
-html.light .text-white\/30 { color: rgba(120, 113, 108, 0.62) !important; }
-html.light .text-white\/25 { color: rgba(120, 113, 108, 0.52) !important; }
-html.light .text-white\/20 { color: rgba(120, 113, 108, 0.42) !important; }
+html.light .text-white\/90 {
+  color: rgba(24, 24, 27, 0.92) !important;
+}
+html.light .text-white\/80 {
+  color: rgba(24, 24, 27, 0.85) !important;
+}
+html.light .text-white\/70 {
+  color: rgba(39, 39, 42, 0.78) !important;
+}
+html.light .text-white\/60 {
+  color: rgba(63, 63, 70, 0.72) !important;
+}
+html.light .text-white\/50 {
+  color: rgba(82, 82, 91, 0.65) !important;
+}
+html.light .text-white\/45 {
+  color: rgba(82, 82, 91, 0.58) !important;
+}
+html.light .text-white\/40 {
+  color: rgba(113, 113, 122, 0.85) !important;
+}
+html.light .text-white\/35 {
+  color: rgba(113, 113, 122, 0.75) !important;
+}
+html.light .text-white\/30 {
+  color: rgba(113, 113, 122, 0.65) !important;
+}
+html.light .text-white\/25 {
+  color: rgba(113, 113, 122, 0.55) !important;
+}
+html.light .text-white\/20 {
+  color: rgba(113, 113, 122, 0.45) !important;
+}
 
 html.light .text-slate-300,
-html.light .text-zinc-300 { color: #44403c !important; }
+html.light .text-zinc-300 {
+  color: #52525b !important;
+}
 
 html.light .text-slate-100,
-html.light .text-zinc-200 { color: #292524 !important; }
+html.light .text-zinc-100,
+html.light .text-zinc-200 {
+  color: var(--logo-text) !important;
+}
 
 html.light .text-slate-400,
 html.light .text-zinc-400,
-html.light .text-zinc-500 { color: #57534e !important; }
+html.light .text-zinc-500 {
+  color: var(--ui-text-muted) !important;
+}
 
-html.light .text-slate-500 { color: #78716c !important; }
+html.light .text-slate-500 {
+  color: var(--ui-text-muted) !important;
+}
 
 html.light .bg-white\/5,
 html.light .bg-white\/6,
 html.light .bg-white\/8,
 html.light .bg-white\/10 {
-  background-color: rgba(120, 113, 108, 0.08) !important;
+  background-color: rgba(24, 24, 27, 0.06) !important;
 }
 
 html.light .bg-white\/\[0\.02\] {
-  background-color: rgba(120, 113, 108, 0.05) !important;
+  background-color: rgba(24, 24, 27, 0.03) !important;
 }
 
 html.light .bg-white\/\[0\.03\] {
-  background-color: rgba(120, 113, 108, 0.06) !important;
+  background-color: rgba(24, 24, 27, 0.04) !important;
 }
 
 html.light .bg-white\/\[0\.06\] {
-  background-color: rgba(120, 113, 108, 0.09) !important;
+  background-color: rgba(24, 24, 27, 0.06) !important;
 }
 
 html.light .bg-white\/20 {
-  background-color: rgba(120, 113, 108, 0.14) !important;
+  background-color: rgba(24, 24, 27, 0.09) !important;
 }
 
-html.light .border-white\/0 { border-color: transparent !important; }
+html.light .border-white\/0 {
+  border-color: transparent !important;
+}
 html.light .border-white\/5,
 html.light .border-white\/6,
 html.light .border-white\/8,
 html.light .border-white\/10,
 html.light .border-white\/15 {
-  border-color: rgba(87, 83, 78, 0.12) !important;
+  border-color: var(--cinema-border) !important;
 }
 
 html.light .bg-black\/60 {
-  background-color: rgba(41, 37, 36, 0.56) !important;
+  background-color: rgba(24, 24, 27, 0.45) !important;
 }
 
 html.light .shadow-\[0_24px_80px_rgba\(0\,0\,0\,0\.45\)\] {
   box-shadow:
-    0 24px 60px rgba(120, 113, 108, 0.18),
-    0 10px 28px rgba(120, 113, 108, 0.12) !important;
+    0 24px 60px rgba(15, 23, 42, 0.12),
+    0 10px 28px rgba(15, 23, 42, 0.08) !important;
 }
 
+/* Акцент: зелёный только на кнопках / бейджах / success */
 html.light .glow-green {
-  box-shadow: 0 0 18px rgba(108, 136, 92, 0.18), 0 0 42px rgba(108, 136, 92, 0.08);
+  box-shadow:
+    0 0 20px rgba(34, 197, 94, 0.22),
+    0 0 44px rgba(34, 197, 94, 0.09);
 }
 
 html.light .glow-green-sm {
-  box-shadow: 0 0 10px rgba(108, 136, 92, 0.12);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.16);
 }
 
 html.light .bg-green-500,
 html.light .bg-emerald-500 {
-  background-color: #6c885c !important;
+  background-color: #5bb98a !important;
 }
 
 html.light .hover\:bg-green-400:hover,
 html.light .hover\:bg-emerald-400:hover,
 html.light .hover\:bg-green-500:hover,
 html.light .hover\:bg-emerald-500:hover {
-  background-color: #5e774f !important;
+  background-color: #4aad7d !important;
 }
 
 html.light .bg-green-500\/90,
 html.light .bg-emerald-500\/90,
 html.light .bg-green-500\/80,
 html.light .bg-emerald-500\/80 {
-  background-color: rgba(108, 136, 92, 0.84) !important;
+  background-color: rgba(91, 185, 138, 0.88) !important;
 }
 
 html.light .bg-green-500\/20,
 html.light .bg-emerald-500\/20 {
-  background-color: rgba(108, 136, 92, 0.18) !important;
+  background-color: rgba(91, 185, 138, 0.16) !important;
 }
 
 html.light .bg-green-500\/15,
 html.light .bg-emerald-500\/15 {
-  background-color: rgba(108, 136, 92, 0.14) !important;
+  background-color: rgba(91, 185, 138, 0.12) !important;
 }
 
 html.light .bg-green-500\/10,
 html.light .bg-emerald-500\/10 {
-  background-color: rgba(108, 136, 92, 0.1) !important;
+  background-color: rgba(91, 185, 138, 0.09) !important;
 }
 
 html.light .bg-green-500\/5,
 html.light .bg-emerald-500\/5 {
-  background-color: rgba(108, 136, 92, 0.07) !important;
+  background-color: rgba(91, 185, 138, 0.06) !important;
 }
 
 html.light .bg-green-500\/60 {
-  background-color: rgba(108, 136, 92, 0.56) !important;
+  background-color: rgba(91, 185, 138, 0.52) !important;
 }
 
 html.light .text-green-400,
 html.light .text-emerald-400,
 html.light .text-emerald-500 {
-  color: #5a724d !important;
+  color: #3d8f66 !important;
 }
 
 html.light .text-green-300,
 html.light .text-emerald-300 {
-  color: #6d875e !important;
+  color: #4a9d73 !important;
 }
 
 html.light .border-green-500\/40,
@@ -335,17 +561,27 @@ html.light .border-green-500\/20,
 html.light .border-green-500\/15,
 html.light .border-emerald-500\/30,
 html.light .border-emerald-500\/20 {
-  border-color: rgba(108, 136, 92, 0.26) !important;
+  border-color: var(--accent-green-border) !important;
 }
 
 html.light .ring-green-500\/40,
 html.light .ring-green-500\/30,
 html.light .ring-emerald-500\/30,
 html.light .ring-emerald-500\/20 {
-  --tw-ring-color: rgba(108, 136, 92, 0.24) !important;
+  --tw-ring-color: rgba(74, 157, 115, 0.28) !important;
 }
 
 /* ── Page transitions ────────────────────────────────────────────────────── */
-.page-enter-active, .page-leave-active { transition: opacity 0.22s ease, transform 0.22s ease; }
-.page-enter-from { opacity: 0; transform: translateY(6px); }
-.page-leave-to   { opacity: 0; }
+.page-enter-active,
+.page-leave-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.page-leave-to {
+  opacity: 0;
+}

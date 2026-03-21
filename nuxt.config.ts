@@ -143,8 +143,9 @@ export default defineNuxtConfig({
       ],
       script: yandexMetrikaHeadScripts,
       meta: [
-        { name: 'theme-color', content: '#0d0d10' },
-        { name: 'color-scheme', content: 'dark' },
+        { name: 'theme-color', content: '#111113', media: '(prefers-color-scheme: dark)' },
+        { name: 'theme-color', content: '#f4f4f5', media: '(prefers-color-scheme: light)' },
+        { name: 'color-scheme', content: 'dark light' },
         { name: 'format-detection', content: 'telephone=no' },
         // Default OG tags (overridden per-page via useSeoMeta)
         { property: 'og:type', content: 'website' },

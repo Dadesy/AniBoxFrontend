@@ -98,18 +98,87 @@ export interface CatalogResponse {
   prevPage: string | null;
 }
 
+export interface CatalogPageResult {
+  items: CatalogCard[];
+  page: number;
+  limit: number;
+  hasMore: boolean;
+}
+
+/**
+ * Minimal card shape returned by the Shikimori-backed catalog.
+ * NormalizedAnimeCard maps directly to this shape.
+ */
+export interface CatalogCard {
+  /** Kodik externalId — present only when the title is playable */
+  externalId?: string;
+  /** Shikimori numeric id (always present from Shikimori source) */
+  shikimoriId?: string;
+  /** Used as fallback id in Shikimori-sourced cards */
+  id?: string;
+  title: string;
+  titleRu?: string;
+  posterUrl?: string;
+  score?: number;
+  year?: number;
+  /** Shikimori kind: 'tv' | 'movie' | 'ova' | 'ona' | 'special' */
+  kind?: string;
+  /** Kodik/legacy type: 'anime-serial' | 'anime' */
+  type?: string;
+  status?: string;
+}
+
+export interface GenreOption {
+  id: number;
+  name: string;
+  russian: string;
+}
+
+export interface StudioOption {
+  id: number;
+  name: string;
+}
+
 export interface FilterOptions {
-  genres: string[];
-  years: number[];
-  types: string[];
+  genres: GenreOption[];
+  kinds: Array<{ value: string; label: string }>;
+  statuses: Array<{ value: string; label: string }>;
+  sorts: Array<{ value: string; label: string }>;
+  seasons: Array<{ value: string; label: string }>;
+  ageRatings: Array<{ value: string; label: string }>;
+  studios: StudioOption[];
+  demographics: Array<{ value: string; label: string }>;
 }
 
 export interface CatalogFilters {
-  types?: string;
-  genres?: string;
-  year?: string;
-  country?: string;
-  translationId?: string;
+  /** comma-separated: 'tv,movie,ova' */
+  kind?: string;
+  /** comma-separated: 'ongoing,released,anons' */
+  status?: string;
+  /** comma-separated Shikimori genre IDs */
+  genre?: string;
+  /** e.g. 'winter_2025' */
+  season?: string;
+  /** minimum score 1-9 */
+  score?: string;
+  /** popularity | ranked | aired_on | name | random */
+  order?: string;
+  /** text search */
+  search?: string;
+  /** page number */
+  page?: number;
+  /** show only titles with a player */
+  hasPlayer?: boolean;
+  /** year range — from */
+  yearFrom?: string;
+  /** year range — to */
+  yearTo?: string;
+  /** age rating: g,pg,pg_13,r,r_plus (comma-separated) */
+  ageRating?: string;
+  /** comma-separated Shikimori studio IDs */
+  studio?: string;
+  /** comma-separated demographic genre IDs */
+  demographic?: string;
 }
 
 // ── Progress ──────────────────────────────────────────────────────────────────

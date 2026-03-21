@@ -6,9 +6,13 @@ import HeroSlider from '~/components/home/HeroSlider.vue'
 import AnimeCarousel from '~/components/home/AnimeCarousel.vue'
 import GenreRow from '~/components/home/GenreRow.vue'
 import ContinueWatchingBlock from '~/components/content/ContinueWatchingBlock.vue'
+import CollectionRow from '~/components/home/CollectionRow.vue'
+import NewsCard from '~/components/content/NewsCard.vue'
 
 // ── Auth ─────────────────────────────────────────────────────────────────
 const { isAuthenticated } = useAuth()
+const { collections } = useCollections()
+const { news } = useNews(10)
 
 // ── Home data — all sections including AniLibria fresh (from backend) ────
 const { hero, sections, loading: metaLoading } = useHomeData()
@@ -126,6 +130,20 @@ useHead({
         <ContinueWatchingBlock :items="continueItems" />
       </div>
 
+      <!-- ── Collections grid ────────────────────────────────────────── -->
+      <div
+        v-if="collections.length"
+        class="mb-8 px-4 sm:px-6"
+      >
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="text-base font-bold text-white">Подборки</h2>
+          <NuxtLink to="/catalog" class="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+            Весь каталог →
+          </NuxtLink>
+        </div>
+        <CollectionRow :collections="collections" />
+      </div>
+
       <!-- ── Sections: AniLibria fresh + Shikimori carousels ────────── -->
       <div class="space-y-8 pb-16">
 
@@ -168,6 +186,24 @@ useHead({
             </NuxtLink>
           </div>
         </template>
+      </div>
+
+      <!-- ── News from Shikimori ─────────────────────────────────────── -->
+      <div v-if="news.length" class="px-4 pb-8 sm:px-6">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="text-base font-bold text-white">Новости аниме</h2>
+          <a
+            href="https://shikimori.one/forum/animanga"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+          >
+            Shikimori →
+          </a>
+        </div>
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <NewsCard v-for="item in news.slice(0, 8)" :key="item.id" :item="item" />
+        </div>
       </div>
     </div>
   </div>

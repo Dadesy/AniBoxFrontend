@@ -2,14 +2,15 @@
 @import "@nuxt/ui";
 
 @theme {
-  /* ── Cinema color palette ────────────────────────────────────────── */
-  /* Overridden per theme via CSS vars in main.css                      */
-  --color-cinema-base:     #111113;
-  --color-cinema-surface:  #18181b;
-  --color-cinema-card:     #1c1c1f;
-  --color-cinema-elevated: #232326;
+  /*
+   * Палитра «кино» привязана к CSS-переменным на <html> (main.css).
+   * Пастельный тёмный: уголь + шалфей. Светлый: мятный крем.
+   */
+  --color-cinema-base: var(--cinema-base, #111113);
+  --color-cinema-surface: var(--cinema-surface, #18181b);
+  --color-cinema-card: var(--cinema-card, #1c1c1f);
+  --color-cinema-elevated: var(--cinema-elevated, #232326);
 
-  /* ── Reduced border radius ───────────────────────────────────────── */
   --radius-sm:  3px;
   --radius:     5px;
   --radius-md:  6px;

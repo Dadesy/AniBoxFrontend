@@ -55,3 +55,50 @@ export const STATUS_LABELS: Record<string, string> = {
   released: 'Вышел',
   anons:    'Анонс',
 }
+
+// ── Watch target ──────────────────────────────────────────────────────────
+
+export interface WatchTarget {
+  externalId: string
+  sourceProvider: string
+  /** e.g. /watch/anime-serial-1234?season=1&episode=1&translationId=610 */
+  watchUrl: string
+  season?: number
+  episode?: number
+  translationId?: number
+  translationName?: string
+  hasAvailablePlayer: boolean
+}
+
+// ── Collections ───────────────────────────────────────────────────────────
+
+export interface Collection {
+  id: string
+  title: string
+  subtitle?: string
+  icon?: string
+  items: NormalizedAnimeCard[]
+  seeAllHref?: string
+}
+
+// ── News ──────────────────────────────────────────────────────────────────
+
+export interface NewsItem {
+  id: string
+  title: string
+  body: string
+  createdAt: string
+  commentsCount: number
+  url: string
+  linkedAnime?: {
+    id: string
+    title: string
+    titleRu?: string
+    url: string
+    kind?: string
+  }
+  author: {
+    nickname: string
+    avatarUrl: string
+  }
+}

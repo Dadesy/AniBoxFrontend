@@ -98,7 +98,7 @@ watch(current, () => { progressKey.value++ })
   <!-- ── Skeleton ──────────────────────────────────────────────────────── -->
   <div
     v-if="loading || !items.length"
-    class="relative w-full overflow-hidden bg-zinc-950"
+    class="hero-slider relative w-full overflow-hidden bg-zinc-950"
     style="height: clamp(360px, 52vw, 540px);"
   >
     <div class="absolute inset-0 animate-pulse" style="background: linear-gradient(135deg, #111115 0%, #0d0d10 100%)" />
@@ -121,7 +121,7 @@ watch(current, () => { progressKey.value++ })
   <!-- ── Hero Slider ───────────────────────────────────────────────────── -->
   <div
     v-else
-    class="relative w-full overflow-hidden select-none"
+    class="hero-slider relative w-full overflow-hidden select-none"
     style="height: clamp(360px, 52vw, 540px);"
     @touchstart.passive="onTouchStart"
     @touchend.passive="onTouchEnd"
@@ -179,22 +179,22 @@ watch(current, () => { progressKey.value++ })
             >
               Анонс
             </span>
-            <span v-if="kindLabel" class="text-[11px] font-semibold text-white/40 uppercase tracking-widest">
+            <span v-if="kindLabel" class="text-[11px] font-semibold uppercase tracking-widest text-[rgba(255,255,255,0.45)]">
               {{ kindLabel }}
             </span>
             <template v-if="card.score">
-              <span class="text-white/20 text-xs">·</span>
+              <span class="text-xs text-[rgba(255,255,255,0.22)]">·</span>
               <span class="text-[12px] font-bold text-yellow-400">★ {{ card.score.toFixed(1) }}</span>
             </template>
           </div>
 
           <!-- Title -->
-          <h1 class="text-2xl sm:text-[2.4rem] font-extrabold text-white leading-tight tracking-tight line-clamp-2">
+          <h1 class="text-2xl sm:text-[2.4rem] font-extrabold leading-tight tracking-tight line-clamp-2 text-[#fff]">
             {{ displayTitle }}
           </h1>
 
           <!-- Meta row -->
-          <p class="text-sm text-white/40 font-medium">
+          <p class="text-sm font-medium text-[rgba(255,255,255,0.45)]">
             {{ [card.year, episodeLabel].filter(Boolean).join(' · ') }}
           </p>
 
@@ -203,7 +203,7 @@ watch(current, () => { progressKey.value++ })
             <span
               v-for="g in (card.genres ?? []).slice(0, 3)"
               :key="g"
-              class="px-2.5 py-0.5 rounded-full border border-white/10 text-[11px] text-white/40"
+              class="rounded-full border border-[rgba(255,255,255,0.12)] px-2.5 py-0.5 text-[11px] text-[rgba(255,255,255,0.45)]"
             >
               {{ g }}
             </span>
@@ -212,7 +212,7 @@ watch(current, () => { progressKey.value++ })
           <!-- Action buttons -->
           <div class="flex items-center gap-3 pt-1.5">
             <button
-              class="inline-flex items-center gap-2 h-11 px-7 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-sm font-bold text-white transition-all active:scale-95 shadow-lg shadow-emerald-500/20 disabled:opacity-60"
+              class="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-500 px-7 text-sm font-bold text-[#fff] shadow-lg shadow-emerald-500/20 transition-all hover:bg-emerald-400 active:scale-95 disabled:opacity-60"
               :disabled="navigating"
               @click="handleWatch"
             >
@@ -222,7 +222,7 @@ watch(current, () => { progressKey.value++ })
             </button>
 
             <button
-              class="inline-flex items-center gap-2 h-11 px-5 rounded-xl border border-white/12 text-sm font-medium text-white/60 hover:text-white hover:border-white/25 transition-all disabled:opacity-60"
+              class="inline-flex h-11 items-center gap-2 rounded-xl border border-[rgba(255,255,255,0.14)] px-5 text-sm font-medium text-[rgba(255,255,255,0.72)] transition-all hover:border-[rgba(255,255,255,0.28)] hover:text-[#fff] disabled:opacity-60"
               :disabled="navigating"
               @click="handleDetail"
             >
@@ -239,14 +239,14 @@ watch(current, () => { progressKey.value++ })
         class="absolute right-6 bottom-12 sm:right-14 sm:bottom-14 flex items-center gap-2"
       >
         <button
-          class="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 text-white/50 hover:text-white hover:border-white/30 transition-all hover:bg-white/5"
+          class="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(255,255,255,0.18)] text-[rgba(255,255,255,0.55)] transition-all hover:border-[rgba(255,255,255,0.32)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[#fff]"
           @click="prev"
         >
           <UIcon name="lucide:chevron-left" class="size-4" />
         </button>
-        <span class="text-xs text-white/35 font-mono tabular-nums">{{ current + 1 }}/{{ items.length }}</span>
+        <span class="font-mono text-xs tabular-nums text-[rgba(255,255,255,0.38)]">{{ current + 1 }}/{{ items.length }}</span>
         <button
-          class="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 text-white/50 hover:text-white hover:border-white/30 transition-all hover:bg-white/5"
+          class="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(255,255,255,0.18)] text-[rgba(255,255,255,0.55)] transition-all hover:border-[rgba(255,255,255,0.32)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[#fff]"
           @click="next"
         >
           <UIcon name="lucide:chevron-right" class="size-4" />
@@ -263,7 +263,7 @@ watch(current, () => { progressKey.value++ })
         v-for="(_, idx) in items"
         :key="idx"
         class="relative h-[3px] flex-1 rounded-full overflow-hidden transition-all"
-        :class="idx === current ? 'bg-white/20' : 'bg-white/10'"
+        :class="idx === current ? 'bg-[rgba(255,255,255,0.22)]' : 'bg-[rgba(255,255,255,0.12)]'"
         @click="goTo(idx)"
       >
         <!-- animated fill for active slide -->
