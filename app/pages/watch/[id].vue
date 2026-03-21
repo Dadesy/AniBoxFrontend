@@ -27,6 +27,7 @@
           :error-message="playerError"
           :season="currentSeason"
           :episode="currentEpisode"
+          :next-episode-number="nextEpisodeNumber"
           @time-update="onTimeUpdate"
           @pause="onPause"
           @ended="onEnded"
@@ -145,12 +146,44 @@ function syncRouteState(extraTime?: number): void {
   window.history.replaceState(window.history.state, '', nextUrl)
 }
 
+// ── AniLibria HLS helpers ─────────────────────────────────────────────────────
+
+const isHlsSource = computed(() => detail.value?.sourceProvider === 'anilibria')
+
+/** HLS URL for the currently selected episode (AniLibria only) */
+const currentEpisodeLink = computed((): string => {
+  if (!isHlsSource.value) return ''
+  const season = availableSeasons.value.find((s) => s.number === currentSeason.value)
+    ?? availableSeasons.value[0]
+  const ep = season?.episodes.find((e) => e.number === currentEpisode.value)
+    ?? season?.episodes[0]
+  return ep?.link ?? ''
+})
+
+/** Next episode number in the current season (for auto-advance prompt) */
+const nextEpisodeNumber = computed((): number | undefined => {
+  if (!isHlsSource.value) return undefined
+  const season = availableSeasons.value.find((s) => s.number === currentSeason.value)
+  if (!season) return undefined
+  const idx = season.episodes.findIndex((e) => e.number === currentEpisode.value)
+  return idx >= 0 && idx < season.episodes.length - 1
+    ? season.episodes[idx + 1]!.number
+    : undefined
+})
+
+// Sync HLS source URL when episode changes
+watch(currentEpisodeLink, (link) => {
+  if (isHlsSource.value && link) playerSourceUrl.value = link
+})
+
+// ── Progress payload ──────────────────────────────────────────────────────────
+
 function buildProgressPayload(time: number, duration: number): SaveProgressPayload {
   const activeTranslation = detail.value?.allTranslations.find((item) => item.id === activeTranslationId.value)
 
   return {
     externalId: externalId.value,
-    sourceProvider: 'kodik',
+    sourceProvider: detail.value?.sourceProvider ?? 'kodik',
     title: detail.value?.title ?? '',
     posterUrl: detail.value?.posterUrl,
     contentType: detail.value?.type,
@@ -191,10 +224,21 @@ async function loadDetail(): Promise<void> {
       qEpisode.value ?? persisted?.episode ?? latestProgress?.episode,
     )
 
-    if (!data.seasons.length && !data.playerUrl) {
-      playerError.value = 'Серии для этого тайтла пока недоступны'
+    if (data.sourceProvider === 'anilibria') {
+      // HLS mode: use current episode's m3u8 link as player source
+      const firstSeason = data.seasons[0]
+      const firstEp = firstSeason?.episodes.find((e) => e.number === currentEpisode.value)
+        ?? firstSeason?.episodes[0]
+      playerSourceUrl.value = firstEp?.link ?? ''
+      if (!playerSourceUrl.value) {
+        playerError.value = 'Видеофайл недоступен'
+      }
+    } else {
+      if (!data.seasons.length && !data.playerUrl) {
+        playerError.value = 'Серии для этого тайтла пока недоступны'
+      }
+      playerSourceUrl.value = data.playerUrl
     }
-    playerSourceUrl.value = data.playerUrl
     syncRouteState()
     persistSelection()
 
@@ -231,9 +275,13 @@ function onPause(_time: number): void {
 
 function onEnded(): void {
   const { currentTime, duration } = getPlayerState()
-  // Save with max(currentTime, duration) so the episode is marked as completed
   const t = duration > 0 ? duration : currentTime
   void saveNow(buildProgressPayload(t, t > 0 ? t : currentTime))
+
+  // AniLibria HLS: auto-advance to next episode
+  if (isHlsSource.value && nextEpisodeNumber.value) {
+    onPlayerEpisodeChange(currentSeason.value ?? 1, nextEpisodeNumber.value)
+  }
 }
 
 function onPlayerEpisodeChange(season: number, episode: number, translationId?: number): void {
@@ -259,17 +307,7 @@ function formatTime(seconds: number): string {
   return `${minutes}:${remainder.toString().padStart(2, '0')}`
 }
 
-// If the title only has AniLibria as source (no Kodik player), redirect to their site
-watch(
-  () => detail.value?.anilibriaUrl,
-  (url) => {
-    if (url && !detail.value?.playerUrl) {
-      window.open(url, '_blank', 'noopener,noreferrer')
-      router.back()
-    }
-  },
-  { immediate: true },
-)
+// No redirects — AniLibria content is played via built-in HLS player
 
 onMounted(() => {
   void loadDetail()

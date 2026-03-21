@@ -23,7 +23,28 @@
       </div>
 
       <div v-else-if="playerUrl" class="w-full">
+        <!-- HLS player for AniLibria (.m3u8 streams) -->
+        <HlsPlayer
+          v-if="isHls"
+          ref="playerRef"
+          :src="playerUrl"
+          :title="title"
+          :start-time="startTime"
+          :current-season-prop="season"
+          :current-episode-prop="episode"
+          :next-episode-number="nextEpisodeNumber"
+          @ready="emit('ready')"
+          @play="emit('play', $event)"
+          @pause="emit('pause', $event)"
+          @time-update="(time, duration) => emit('timeUpdate', time, duration)"
+          @ended="emit('ended')"
+          @episode-change="(s, ep, tid) => emit('episodeChange', s, ep, tid)"
+          @seeked="emit('seeked', $event)"
+        />
+
+        <!-- Iframe player for Kodik / Collaps -->
         <KodikPlayer
+          v-else
           ref="playerRef"
           :player-url="playerUrl"
           :title="title"
@@ -46,6 +67,7 @@
 </template>
 
 <script setup lang="ts">
+import HlsPlayer from '~/components/player/HlsPlayer.vue'
 import KodikPlayer from '~/components/player/KodikPlayer.vue'
 
 const props = defineProps<{
@@ -56,6 +78,8 @@ const props = defineProps<{
   startTime?: number
   season?: number
   episode?: number
+  /** Next episode number for AniLibria auto-advance prompt */
+  nextEpisodeNumber?: number
 }>()
 
 const emit = defineEmits<{
@@ -68,7 +92,16 @@ const emit = defineEmits<{
   (e: 'seeked', time: number): void
 }>()
 
-const playerRef = ref<InstanceType<typeof KodikPlayer> | null>(null)
+const playerRef = ref<InstanceType<typeof KodikPlayer> | InstanceType<typeof HlsPlayer> | null>(null)
+
+/** True when the URL is an HLS manifest (.m3u8) rather than an iframe embed */
+const isHls = computed(() =>
+  Boolean(props.playerUrl) && (
+    props.playerUrl!.includes('.m3u8') ||
+    props.playerUrl!.includes('cache.libria.fun') ||
+    props.playerUrl!.includes('libria.fun')
+  ),
+)
 
 const metaLine = computed(() => {
   const parts: string[] = []
