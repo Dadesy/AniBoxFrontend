@@ -1,5 +1,6 @@
 export interface NormalizedAnimeCard {
   id: string
+  slug?: string
   /** AniLibria release alias (slug), e.g. "shingeki-no-kyojin". Used to build fallback externalId. */
   alias?: string
   source: 'shikimori' | 'anilibria' | 'yanitv'
@@ -84,6 +85,7 @@ export const STATUS_LABELS: Record<string, string> = {
 
 export interface WatchTarget {
   externalId: string
+  slug?: string
   sourceProvider: string
   /** e.g. /watch/anime-serial-1234?season=1&episode=1&translationId=610 */
   watchUrl: string

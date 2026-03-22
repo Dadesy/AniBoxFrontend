@@ -32,15 +32,12 @@ const activeEntries = computed(() => {
 })
 
 const activeTabMeta = computed(() => {
-  const map: Record<
-    LibrarySectionTabKey,
-    { icon: string }
-  > = {
-    watching: { icon: '▶️' },
-    planned: { icon: '📌' },
-    completed: { icon: '✅' },
-    liked: { icon: '❤️' },
-    dropped: { icon: '🚫' },
+  const map: Record<LibrarySectionTabKey, { icon: string }> = {
+    watching:  { icon: 'lucide:play-circle' },
+    planned:   { icon: 'lucide:calendar-plus' },
+    completed: { icon: 'lucide:circle-check' },
+    liked:     { icon: 'lucide:heart' },
+    dropped:   { icon: 'lucide:ban' },
   }
   return map[activeTab.value]
 })

@@ -35,6 +35,11 @@ export async function resolveContentCard(
 // ── Navigate to a metadata card ───────────────────────────────────────────
 
 export async function navigateToCard(card: NormalizedAnimeCard): Promise<void> {
+  if (card.slug) {
+    await navigateTo(`/anime/${encodeURIComponent(card.slug)}`)
+    return
+  }
+
   // Fast path: externalId already resolved by the backend (attachPlayableIds).
   // Navigate instantly — zero extra API calls, no spinner delay.
   if (card.externalId) {

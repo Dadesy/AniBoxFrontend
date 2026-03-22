@@ -52,13 +52,13 @@
 
         <!-- Actions -->
         <div class="flex items-center gap-3 delay-300 animate-fade-up">
-          <NuxtLink :to="`/watch/${encodeURIComponent(item.externalId)}`">
+          <NuxtLink :to="watchHref">
             <button class="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-bold rounded-xl transition-all duration-200 glow-green-sm hover:glow-green text-sm">
               <UIcon name="lucide:play" class="size-4 ml-0.5" />
               Смотреть
             </button>
           </NuxtLink>
-          <NuxtLink :to="`/title/${encodeURIComponent(item.externalId)}`">
+          <NuxtLink :to="detailHref">
             <button class="flex items-center gap-2 px-5 py-3 glass hover:bg-white/10 text-white font-semibold rounded-xl transition-all duration-200 text-sm">
               <UIcon name="lucide:info" class="size-4" />
               Подробнее
@@ -85,4 +85,16 @@ const typeLabel = computed(() => {
   };
   return map[props.item.type] ?? 'Аниме';
 });
+
+const detailHref = computed(() =>
+  props.item.slug
+    ? `/anime/${encodeURIComponent(props.item.slug)}`
+    : `/title/${encodeURIComponent(props.item.externalId)}`,
+)
+
+const watchHref = computed(() =>
+  props.item.slug
+    ? `/watch/${encodeURIComponent(props.item.slug)}`
+    : `/watch/${encodeURIComponent(props.item.externalId)}`,
+)
 </script>

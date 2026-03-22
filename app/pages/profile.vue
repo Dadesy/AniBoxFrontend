@@ -39,9 +39,9 @@ const activeTab = ref<Tab>('overview')
 
 const tabs: Array<{ id: Tab; label: string; icon: string }> = [
   { id: 'overview',     label: 'Обзор',      icon: 'lucide:layout-dashboard' },
-  { id: 'library',      label: 'Библиотека', icon: 'lucide:bookmark'         },
-  { id: 'achievements', label: 'Достижения', icon: 'lucide:trophy'           },
-  { id: 'history',      label: 'История',    icon: 'lucide:history'          },
+  { id: 'library',      label: 'Библиотека', icon: 'lucide:library'          },
+  { id: 'achievements', label: 'Достижения', icon: 'lucide:medal'            },
+  { id: 'history',      label: 'История',    icon: 'lucide:scroll-text'      },
 ]
 
 // ── Tier tokens ───────────────────────────────────────────────────────────
@@ -397,38 +397,49 @@ function fmtShort(dateStr: string) {
          STICKY TAB NAVIGATION
     ═══════════════════════════════════════════════════════════════════ -->
     <div
-      class="sticky z-30 border-b border-white/[0.07] bg-[#07070e]/88 backdrop-blur-md"
+      class="sticky z-30 border-b border-white/[0.07] bg-[#07070e]/90 backdrop-blur-md"
       style="top: var(--app-header-offset-mobile, 64px);"
     >
-      <div class="mx-auto max-w-2xl px-4 sm:px-6">
-        <nav class="scrollbar-hide -mb-px flex overflow-x-auto" aria-label="Разделы профиля">
+      <div class="mx-auto flex max-w-2xl items-center gap-2 px-4 py-2.5 sm:px-6">
+        <nav
+          class="scrollbar-hide flex min-w-0 flex-1 gap-1 overflow-x-auto rounded-[var(--app-radius-xl)] border border-[var(--cinema-border)] bg-[var(--cinema-card)]/55 p-1 shadow-sm shadow-black/20"
+          aria-label="Разделы профиля"
+          style="scroll-snap-type: x proximity;"
+        >
           <button
             v-for="tab in tabs"
             :key="tab.id"
             type="button"
-            class="flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-3.5 text-xs font-semibold transition-all duration-200 sm:px-4 sm:text-[13px]"
-            :class="activeTab === tab.id ? '' : 'border-transparent text-white/38 hover:text-white/65'"
-            :style="activeTab === tab.id
-              ? `color: ${tierColors.text}; border-color: ${tierColors.text};`
-              : ''"
+            style="scroll-snap-align: start;"
+            class="flex shrink-0 items-center gap-2 rounded-[var(--app-radius-lg)] px-3 py-2.5 text-xs font-semibold transition-[background,color,box-shadow] duration-200 sm:px-3.5 sm:text-[13px]"
+            :class="
+              activeTab === tab.id
+                ? 'bg-emerald-500/[0.14] text-emerald-200 ring-1 ring-emerald-500/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]'
+                : 'text-slate-500 hover:bg-white/[0.05] hover:text-slate-200'
+            "
             @click="activeTab = tab.id"
           >
-            <UIcon :name="tab.icon" class="size-3.5 shrink-0" />
+            <UIcon
+              :name="tab.icon"
+              class="size-4 shrink-0 sm:size-[15px]"
+              :class="activeTab === tab.id ? 'text-emerald-400/95' : 'text-slate-500'"
+            />
             {{ tab.label }}
           </button>
-
-          <!-- Mobile logout (inside tab bar) -->
-          <div class="ml-auto flex shrink-0 items-center px-3 sm:hidden">
-            <button
-              class="flex items-center gap-1 py-3 text-[11px] font-medium text-red-400/45 transition-colors hover:text-red-400"
-              :disabled="logoutPending"
-              @click="handleLogout"
-            >
-              <UIcon name="lucide:log-out" class="size-3.5" />
-              {{ logoutPending ? '...' : 'Выйти' }}
-            </button>
-          </div>
         </nav>
+
+        <!-- Mobile logout -->
+        <div class="flex shrink-0 sm:hidden">
+          <button
+            type="button"
+            class="flex h-11 min-w-11 items-center justify-center rounded-[var(--app-radius-lg)] border border-[var(--cinema-border)] bg-[var(--cinema-card)]/55 text-red-400/55 transition-colors hover:border-red-500/25 hover:bg-red-500/10 hover:text-red-400"
+            :disabled="logoutPending"
+            title="Выйти"
+            @click="handleLogout"
+          >
+            <UIcon name="lucide:log-out" class="size-[18px]" />
+          </button>
+        </div>
       </div>
     </div>
 

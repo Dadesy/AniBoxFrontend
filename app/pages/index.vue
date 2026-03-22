@@ -28,19 +28,28 @@ function hasRenderablePoster(card: NormalizedAnimeCard | null | undefined): card
   return !!upgradeAnimePosterUrl(card?.posterUrl)
 }
 
+function sameHeroCard(left: NormalizedAnimeCard, right: NormalizedAnimeCard): boolean {
+  return (
+    left.slug === right.slug ||
+    left.externalId === right.externalId ||
+    (left.source === right.source && left.id === right.id)
+  )
+}
+
 const heroItems = computed<NormalizedAnimeCard[]>(() => {
   const items: NormalizedAnimeCard[] = []
   if (hasRenderablePoster(hero.value)) items.push(hero.value)
 
-  const ongoings = sections.value.find((s) => s.id === 'ongoings')
-  if (ongoings?.items) {
-    for (const card of ongoings.items) {
+  for (const section of sections.value) {
+    for (const card of section.items ?? []) {
       if (items.length >= 5) break
       // Only include cards with a poster so every hero slide shows an image
       if (!hasRenderablePoster(card)) continue
-      if (!items.find((c) => c.id === card.id)) items.push(card)
+      if (!items.find((c) => sameHeroCard(c, card))) items.push(card)
     }
+    if (items.length >= 5) break
   }
+
   return items
 })
 

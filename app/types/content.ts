@@ -16,6 +16,41 @@ export interface Translation {
   episodesCount?: number;
 }
 
+export interface SourceStatusSnapshot {
+  anilibria: boolean;
+  kodik: boolean;
+  shikimori: boolean;
+}
+
+export interface AnimePlayerOption {
+  provider: 'kodik' | 'anilibria';
+  externalId: string;
+  slug: string;
+  label: string;
+  available: boolean;
+}
+
+export interface UnifiedAnimeEpisode {
+  season: number;
+  episode: number;
+  title?: string;
+  link: string;
+  translationId?: number;
+  translationTitle?: string;
+  sourceProvider: 'kodik' | 'anilibria';
+}
+
+export interface UnifiedAnimePlayerState {
+  availablePlayers: AnimePlayerOption[];
+  defaultPlayer: 'kodik' | 'anilibria' | null;
+  currentPlayer: 'kodik' | 'anilibria' | null;
+  availableEpisodes: number;
+  episodes: UnifiedAnimeEpisode[];
+  watchAvailable: boolean;
+  blockedReason?: string;
+  sourceStatus: SourceStatusSnapshot;
+}
+
 export interface Episode {
   number: number;
   link: string;
@@ -42,6 +77,7 @@ export interface SeasonOption {
 }
 
 export interface ContentCard {
+  slug?: string;
   externalId: string;
   sourceProvider: 'kodik' | 'anilibria';
   type: ContentType;
@@ -82,6 +118,9 @@ export interface WatchSourceOption {
 }
 
 export interface AnimeDetail extends ContentCard {
+  slug?: string;
+  poster?: string;
+  rating?: number;
   allTranslations: Translation[];
   seasons: Season[];
   seasonOptions: SeasonOption[];
@@ -90,6 +129,9 @@ export interface AnimeDetail extends ContentCard {
   /** When set — title served from AniLibria fallback. Link to watch on their site. */
   anilibriaUrl?: string;
   watchSources?: WatchSourceOption[];
+  player?: UnifiedAnimePlayerState;
+  watchAvailable?: boolean;
+  watchBlockedReason?: string;
 }
 
 export interface AnimeEpisodesResponse {
@@ -118,6 +160,7 @@ export interface CatalogPageResult {
  * NormalizedAnimeCard maps directly to this shape.
  */
 export interface CatalogCard {
+  slug?: string;
   /** Kodik externalId — present only when the title is playable */
   externalId?: string;
   /** Shikimori numeric id (always present from Shikimori source) */
@@ -134,6 +177,55 @@ export interface CatalogCard {
   /** Kodik/legacy type: 'anime-serial' | 'anime' */
   type?: string;
   status?: string;
+}
+
+export interface AnimeCardDto {
+  id: string;
+  slug: string;
+  source: 'anilibria' | 'shikimori_kodik';
+  externalId?: string;
+  title: string;
+  titleRu?: string;
+  description?: string;
+  poster?: string;
+  status?: string;
+  rating?: number;
+  genres: string[];
+  year?: number;
+  availableEpisodes?: number;
+  watchAvailable: boolean;
+  watchBlockedReason?: string;
+}
+
+export interface AnimeListResponse {
+  items: AnimeCardDto[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export interface AnimeCollectionDto {
+  id: string;
+  title: string;
+  subtitle?: string;
+  items: AnimeCardDto[];
+}
+
+export interface AnimeWatchResponse {
+  anime: AnimeCardDto;
+  sourceStatus: SourceStatusSnapshot;
+  availablePlayers: AnimePlayerOption[];
+  selectedPlayer: AnimePlayerOption | null;
+  playerUrl: string;
+  seasons: Season[];
+  seasonOptions: SeasonOption[];
+  season?: number;
+  episode?: number;
+  translationId?: number;
+  translationName?: string;
+  watchAvailable: boolean;
+  blockedReason?: string;
 }
 
 export interface GenreOption {

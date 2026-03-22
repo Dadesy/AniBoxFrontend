@@ -14,6 +14,7 @@ const props = defineProps<{
 interface HeroSlide {
   item: NormalizedAnimeCard
   posterSrc: string
+  key: string
 }
 
 function poster(item: NormalizedAnimeCard | null): string {
@@ -21,12 +22,16 @@ function poster(item: NormalizedAnimeCard | null): string {
   return upgradeAnimePosterUrl(item.posterUrl)
 }
 
+function slideKey(item: NormalizedAnimeCard): string {
+  return item.slug || item.externalId || `${item.source}-${item.id}`
+}
+
 const slides = computed<HeroSlide[]>(() => {
   const out: HeroSlide[] = []
   for (const item of props.items) {
     const posterSrc = poster(item)
     if (!posterSrc) continue
-    out.push({ item, posterSrc })
+    out.push({ item, posterSrc, key: slideKey(item) })
   }
   return out
 })
@@ -173,7 +178,7 @@ watch(current, () => { progressKey.value++ })
         <div
           v-for="(slide, idx) in slides"
           v-show="idx === current"
-          :key="slide.item.id"
+          :key="slide.key"
           class="absolute inset-0"
         >
           <img
@@ -242,7 +247,7 @@ watch(current, () => { progressKey.value++ })
       <Transition name="hero-slide" mode="out-in">
         <div
           v-if="card"
-          :key="card.id"
+          :key="slideKey(card)"
           class="flex w-full flex-col gap-5 sm:gap-6 lg:flex-row lg:items-end lg:gap-12 xl:gap-14"
         >
           <!-- Постер: на мобилке сверху (компакт), с sm — справа в ряду -->

@@ -11,17 +11,22 @@
         <div
           v-for="i in 6"
           :key="i"
-          class="h-20 animate-pulse rounded-xl bg-white/[0.04] motion-reduce:animate-none"
+          class="h-20 animate-pulse rounded-[var(--app-radius-lg)] bg-[var(--cinema-card)] motion-reduce:animate-none"
         />
       </div>
     </template>
 
     <div
       v-else-if="entries.length === 0"
-      class="flex flex-col items-center gap-3 rounded-xl border border-dashed border-white/[0.08] px-6 py-10 text-center"
+      class="flex flex-col items-center gap-4 rounded-[var(--app-radius-xl)] border border-dashed border-white/[0.09] bg-[var(--cinema-card)]/35 px-6 py-12 text-center ring-1 ring-[var(--cinema-border)]"
     >
-      <span class="text-3xl opacity-50" aria-hidden="true">{{ emptyIcon }}</span>
-      <p class="m-0 max-w-sm text-sm text-zinc-500">
+      <div
+        class="flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-500/15 bg-emerald-500/[0.06]"
+        aria-hidden="true"
+      >
+        <UIcon :name="emptyIcon" class="size-7 text-emerald-500/45" />
+      </div>
+      <p class="m-0 max-w-sm text-sm text-slate-400">
         {{ emptyText }}
       </p>
       <NuxtLink
@@ -55,6 +60,7 @@ defineProps<{
   entries: LibraryEntry[]
   loading?: boolean
   emptyText: string
+  /** Имя иконки Lucide (напр. lucide:heart) */
   emptyIcon: string
 }>()
 </script>

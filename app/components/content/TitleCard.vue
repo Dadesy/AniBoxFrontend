@@ -1,8 +1,8 @@
 <template>
   <!-- Прямая ссылка, если бэкенд уже прислал Kodik / anilibria externalId -->
   <NuxtLink
-    v-if="content.externalId"
-    :to="`/title/${encodeURIComponent(content.externalId)}`"
+    v-if="content.slug || content.externalId"
+    :to="directHref"
     class="group block w-full rounded-[var(--app-radius-lg)] transition-transform motion-reduce:transition-none active:scale-[0.98] motion-reduce:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-green)]/45"
     @pointerenter="onEnter"
     @pointerleave="onLeave"
@@ -84,6 +84,12 @@ const canTryNavigate = computed(() => {
 
 const navigating = ref(false)
 
+const directHref = computed(() => {
+  const slug = pickNonEmptyString((props.content as CardInput).slug)
+  if (slug) return `/anime/${encodeURIComponent(slug)}`
+  return `/title/${encodeURIComponent(props.content.externalId!)}`
+})
+
 function buildNavCard(): NormalizedAnimeCard {
   const c = props.content as CardInput
   const rawId = String(c.shikimoriId ?? c.id ?? '').trim()
@@ -94,6 +100,7 @@ function buildNavCard(): NormalizedAnimeCard {
 
   return {
     id: rawId || c.alias || '',
+    slug: pickNonEmptyString(c.slug) ?? undefined,
     source,
     title: pickNonEmptyString(c.title, c.titleRu) ?? 'Без названия',
     titleRu: pickNonEmptyString(c.titleRu) ?? undefined,
