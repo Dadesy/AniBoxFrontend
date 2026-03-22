@@ -22,6 +22,14 @@ export interface SourceStatusSnapshot {
   shikimori: boolean;
 }
 
+export interface ContentStatusResponse {
+  available: boolean;
+  degraded: boolean;
+  anilibriaAvailable: boolean;
+  kodikAvailable: boolean;
+  shikimoriAvailable: boolean;
+}
+
 export interface AnimePlayerOption {
   provider: 'kodik' | 'anilibria';
   externalId: string;

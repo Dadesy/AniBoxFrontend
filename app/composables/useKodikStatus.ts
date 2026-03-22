@@ -1,8 +1,16 @@
+import type { ContentStatusResponse } from '~/types/content'
+
 const POLL_INTERVAL_MS = 30_000
 const STATUS_FETCH_TIMEOUT_MS = 4_000
 
 /** Shared singleton state across the app */
-const isKodikDown = ref(false)
+const sourceStatus = ref<ContentStatusResponse>({
+  available: true,
+  degraded: false,
+  anilibriaAvailable: true,
+  kodikAvailable: true,
+  shikimoriAvailable: true,
+})
 let pollTimer: ReturnType<typeof setInterval> | null = null
 
 /** Первый запрос к API — один на сессию; ждёт лоадер и все вызовы useKodikStatus */
@@ -11,10 +19,10 @@ let firstFetchPromise: Promise<void> | null = null
 async function fetchStatus(): Promise<void> {
   try {
     const apiUrl = useApiUrl()
-    const data = await $fetch<{ available: boolean }>(`${apiUrl}/content/status`, {
+    const data = await $fetch<ContentStatusResponse>(`${apiUrl}/content/status`, {
       timeout: STATUS_FETCH_TIMEOUT_MS,
     })
-    isKodikDown.value = !data.available
+    sourceStatus.value = data
   } catch {
     // Ошибка сети / бэка — не считаем плеер принудительно недоступным
   }
@@ -52,5 +60,17 @@ export function useKodikStatus() {
   if (import.meta.client) {
     void ensureKodikStatusFetchedOnce()
   }
-  return { isKodikDown: readonly(isKodikDown) }
+
+  const isKodikDown = computed(() => !sourceStatus.value.kodikAvailable)
+  const isAnilibriaDown = computed(() => !sourceStatus.value.anilibriaAvailable)
+  const isShikimoriDown = computed(() => !sourceStatus.value.shikimoriAvailable)
+  const hasMaintenance = computed(() => sourceStatus.value.degraded)
+
+  return {
+    sourceStatus: readonly(sourceStatus),
+    hasMaintenance,
+    isKodikDown,
+    isAnilibriaDown,
+    isShikimoriDown,
+  }
 }

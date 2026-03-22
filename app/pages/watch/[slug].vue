@@ -1,155 +1,242 @@
 <template>
   <div class="min-h-screen bg-cinema-base">
-    <div class="border-b border-white/6 px-4 py-3 sm:px-6 lg:px-8">
-      <div class="mx-auto flex max-w-screen-xl items-center justify-between gap-3">
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         CINEMA TOPBAR
+    ════════════════════════════════════════════════════════════════ -->
+    <header class="sticky top-0 z-30 border-b border-white/[0.06] bg-black/60 backdrop-blur-xl">
+      <div class="mx-auto flex max-w-screen-xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <NuxtLink
           :to="detailLink"
-          class="inline-flex items-center gap-1.5 text-sm text-slate-400 transition-colors hover:text-white"
+          class="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-1.5 text-sm text-slate-400 transition-all hover:border-white/14 hover:bg-white/[0.07] hover:text-white"
         >
-          <UIcon name="lucide:arrow-left" class="size-4" />
+          <UIcon name="lucide:arrow-left" class="size-3.5" />
           К тайтлу
         </NuxtLink>
-        <p v-if="watchData" class="truncate text-sm font-medium text-white">
-          {{ watchData.anime.titleRu || watchData.anime.title }}
-          <template v-if="currentSeason"> · Сезон {{ currentSeason }}</template>
-          <template v-if="currentEpisode"> · Эпизод {{ currentEpisode }}</template>
-        </p>
-      </div>
-    </div>
 
+        <div v-if="watchData" class="min-w-0 flex-1">
+          <p class="truncate text-sm font-medium text-white/90">
+            {{ watchData.anime.titleRu || watchData.anime.title }}
+          </p>
+          <p v-if="currentSeason || currentEpisode" class="text-xs text-slate-500">
+            <template v-if="currentSeason">Сезон {{ currentSeason }}</template>
+            <template v-if="currentEpisode"> · Эпизод {{ currentEpisode }}</template>
+          </p>
+        </div>
+
+        <!-- Episode quick-jump badge (shows current) -->
+        <div
+          v-if="currentEpisode"
+          class="hidden shrink-0 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 sm:block"
+        >
+          эп. {{ currentEpisode }}
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Loading ── -->
     <div v-if="pending" class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
       <div class="aspect-video rounded-[28px] skeleton-shine" />
     </div>
 
+    <!-- ── Error ── -->
     <div v-else-if="!watchData" class="flex min-h-[60vh] items-center justify-center px-4 text-center">
       <div class="space-y-4">
         <UIcon name="lucide:alert-circle" class="mx-auto size-12 text-red-400" />
         <p class="text-slate-300">Не удалось подготовить просмотр</p>
+        <NuxtLink
+          to="/"
+          class="inline-flex min-h-11 items-center justify-center rounded-2xl bg-emerald-500 px-5 text-sm font-semibold text-black"
+        >
+          На главную
+        </NuxtLink>
       </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════════
+         MAIN WATCH LAYOUT
+    ════════════════════════════════════════════════════════════════ -->
     <div v-else class="mx-auto flex max-w-screen-xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-      <AnimePlayer
-        :key="playerRenderKey"
-        ref="playerRef"
-        :title="watchData.anime.titleRu || watchData.anime.title"
-        :player-url="watchData.playerUrl"
-        :loading="pending"
-        :error-message="playerError"
-        :season="currentSeason"
-        :episode="currentEpisode"
-        :start-time="startTime"
-        :next-episode-number="nextEpisodeNumber"
-        @time-update="onTimeUpdate"
-        @pause="onPause"
-        @ended="onEnded"
-        @episode-change="onPlayerEpisodeChange"
-      />
 
-      <Transition name="slide-up">
-        <div
-          v-if="resumePrompt"
-          class="rounded-3xl border border-white/10 bg-white/[0.04] px-4 py-3"
-        >
-          <div class="flex flex-wrap items-center gap-3">
-            <div class="flex min-w-0 flex-1 items-center gap-3">
-              <UIcon name="lucide:clock-3" class="size-5 text-emerald-400" />
-              <div class="min-w-0">
-                <p class="text-sm font-medium text-white">Продолжить с {{ formatTime(startTime ?? 0) }}?</p>
-                <p class="text-xs text-slate-400">Найдено сохранённое место просмотра</p>
-              </div>
-            </div>
-            <div class="flex gap-2">
-              <button
-                type="button"
-                class="rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-black"
-                @click="applyResume"
-              >
-                Продолжить
-              </button>
-              <button
-                type="button"
-                class="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-2 text-sm font-medium text-slate-200"
-                @click="resumeFromStart"
-              >
-                С начала
-              </button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-
+        <!-- ═══════════════════════════════════════════════════════════════
+           PLAYER + SIDEBAR (same row on xl)
+      ════════════════════════════════════════════════════════════════ -->
       <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <div class="space-y-5">
-          <section class="rounded-[28px] border border-white/8 bg-white/[0.03] p-5">
-            <div class="space-y-3">
-              <div>
-                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Источник видео</p>
-                <PlayerSelector
-                  class="mt-3"
-                  :players="watchData.availablePlayers"
-                  :active-external-id="watchData.selectedPlayer?.externalId"
-                  @select="switchPlayer"
-                />
-              </div>
 
-              <div v-if="watchData.blockedReason" class="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+        <!-- ── Left: player + controls ── -->
+        <div class="space-y-5">
+
+          <!-- Player -->
+          <AnimePlayer
+            :key="playerRenderKey"
+            ref="playerRef"
+            :title="watchData.anime.titleRu || watchData.anime.title"
+            :player-url="watchData.playerUrl"
+            :loading="pending"
+            :error-message="playerError"
+            :season="currentSeason"
+            :episode="currentEpisode"
+            :start-time="startTime"
+            :next-episode-number="nextEpisodeNumber"
+            @time-update="onTimeUpdate"
+            @pause="onPause"
+            @ended="onEnded"
+            @episode-change="onPlayerEpisodeChange"
+          />
+
+          <!-- Resume prompt -->
+          <Transition name="slide-up">
+            <div
+              v-if="resumePrompt"
+              class="overflow-hidden rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.07]"
+              style="box-shadow: 0 0 0 1px rgba(16,185,129,0.08);"
+            >
+              <div class="flex flex-wrap items-center gap-3 px-4 py-3.5">
+                <div class="flex min-w-0 flex-1 items-center gap-3">
+                  <div class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15">
+                    <UIcon name="lucide:clock-3" class="size-4 text-emerald-400" />
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-sm font-semibold text-white">Продолжить с {{ formatTime(startTime ?? 0) }}?</p>
+                    <p class="text-xs text-slate-400">Найдено сохранённое место просмотра</p>
+                  </div>
+                </div>
+                <div class="flex shrink-0 gap-2">
+                  <button
+                    type="button"
+                    class="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-emerald-400"
+                    @click="applyResume"
+                  >
+                    Продолжить
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-white/[0.08]"
+                    @click="resumeFromStart"
+                  >
+                    С начала
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Transition>
+
+          <!-- Source selector -->
+          <section
+            class="overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.025]"
+            style="box-shadow: 0 4px 24px rgba(0,0,0,0.30);"
+          >
+            <div
+              class="h-px w-full"
+              style="background: linear-gradient(90deg, transparent 0%, rgba(16,185,129,0.18) 50%, transparent 100%);"
+              aria-hidden="true"
+            />
+            <div class="space-y-4 p-5">
+              <div class="flex items-center gap-2">
+                <div class="h-[1em] w-[3px] shrink-0 rounded-full bg-emerald-500/55" aria-hidden="true" />
+                <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Источник видео</p>
+              </div>
+              <PlayerSelector
+                :players="watchData.availablePlayers"
+                :active-external-id="watchData.selectedPlayer?.externalId"
+                @select="switchPlayer"
+              />
+              <div
+                v-if="watchData.blockedReason"
+                class="rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
+              >
                 {{ watchData.blockedReason }}
               </div>
-
-              <div class="grid gap-3 sm:grid-cols-3">
-                <div class="rounded-2xl border border-white/8 bg-black/20 px-4 py-3">
-                  <p class="text-xs text-slate-500">Плеер</p>
-                  <p class="mt-1 text-sm font-semibold text-white">{{ watchData.selectedPlayer?.label || 'Недоступно' }}</p>
+              <div class="grid grid-cols-3 gap-3">
+                <div class="rounded-xl border border-white/[0.07] bg-black/20 px-4 py-3">
+                  <p class="text-[10px] text-slate-500">Плеер</p>
+                  <p class="mt-1 text-sm font-semibold text-white">{{ watchData.selectedPlayer?.label || '—' }}</p>
                 </div>
-                <div class="rounded-2xl border border-white/8 bg-black/20 px-4 py-3">
-                  <p class="text-xs text-slate-500">Статус</p>
+                <div class="rounded-xl border border-white/[0.07] bg-black/20 px-4 py-3">
+                  <p class="text-[10px] text-slate-500">Статус</p>
                   <p class="mt-1 text-sm font-semibold text-white">{{ watchData.anime.status || '—' }}</p>
                 </div>
-                <div class="rounded-2xl border border-white/8 bg-black/20 px-4 py-3">
-                  <p class="text-xs text-slate-500">Доступно серий</p>
-                  <p class="mt-1 text-sm font-semibold text-white">{{ watchData.anime.availableEpisodes || watchData.seasons.reduce((sum, season) => sum + season.episodes.length, 0) || '—' }}</p>
+                <div class="rounded-xl border border-white/[0.07] bg-black/20 px-4 py-3">
+                  <p class="text-[10px] text-slate-500">Серий</p>
+                  <p class="mt-1 text-sm font-semibold text-white">
+                    {{ watchData.anime.availableEpisodes || watchData.seasons.reduce((s, season) => s + season.episodes.length, 0) || '—' }}
+                  </p>
                 </div>
               </div>
             </div>
           </section>
 
-          <section v-if="watchData.seasons.length" class="rounded-[28px] border border-white/8 bg-white/[0.03] p-5">
-            <div class="mb-4">
-              <h2 class="text-lg font-bold text-white">Серии</h2>
-              <p class="text-sm text-slate-400">Сезон, эпизод и активный источник управляются только через backend DTO</p>
-            </div>
-            <EpisodeList
-              :seasons="watchData.seasons"
-              :active-season="currentSeason"
-              :active-episode="currentEpisode"
-              @select-season="selectSeason"
-              @select-episode="selectEpisode"
+          <!-- Episode list -->
+          <section
+            v-if="watchData.seasons.length"
+            class="overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.025]"
+            style="box-shadow: 0 4px 24px rgba(0,0,0,0.30);"
+          >
+            <div
+              class="h-px w-full"
+              style="background: linear-gradient(90deg, transparent 0%, rgba(16,185,129,0.18) 50%, transparent 100%);"
+              aria-hidden="true"
             />
+            <div class="p-5">
+              <div class="mb-4 flex items-center gap-2">
+                <div class="h-[1em] w-[3px] shrink-0 rounded-full bg-emerald-500/55" aria-hidden="true" />
+                <h2 class="text-base font-bold text-white">Серии</h2>
+              </div>
+              <EpisodeList
+                :seasons="watchData.seasons"
+                :active-season="currentSeason"
+                :active-episode="currentEpisode"
+                @select-season="selectSeason"
+                @select-episode="selectEpisode"
+              />
+            </div>
           </section>
         </div>
 
-        <aside class="space-y-4">
-          <div class="overflow-hidden rounded-[28px] border border-white/8 bg-white/[0.03]">
-            <img
-              v-if="watchData.anime.poster"
-              :src="watchData.anime.poster"
-              :alt="watchData.anime.titleRu || watchData.anime.title"
-              class="aspect-[2/3] w-full object-cover"
+        <!-- ── Right: Anime info sidebar (same level as player) ── -->
+        <aside>
+          <div class="sticky top-[4.5rem] space-y-4">
+            <div
+              class="overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.025]"
+              style="box-shadow: 0 4px 32px rgba(0,0,0,0.38);"
             >
-            <div class="space-y-2 px-5 py-5">
-              <NuxtLink
-                :to="detailLink"
-                class="block text-lg font-bold text-white transition-colors hover:text-emerald-300"
-              >
-                {{ watchData.anime.titleRu || watchData.anime.title }}
-              </NuxtLink>
-              <p class="text-sm text-slate-400">
-                {{ [watchData.anime.year, watchData.anime.status].filter(Boolean).join(' · ') }}
-              </p>
-              <p v-if="watchData.anime.description" class="line-clamp-6 text-sm leading-6 text-slate-300">
-                {{ watchData.anime.description }}
-              </p>
+              <div class="relative overflow-hidden">
+                <img
+                  v-if="watchData.anime.poster"
+                  :src="watchData.anime.poster"
+                  :alt="watchData.anime.titleRu || watchData.anime.title"
+                  referrerpolicy="no-referrer"
+                  class="aspect-[2/3] w-full object-cover"
+                />
+                <div
+                  v-if="watchData.anime.poster"
+                  class="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[rgba(10,12,18,0.9)] to-transparent"
+                />
+              </div>
+              <div class="space-y-3 px-5 py-5">
+                <NuxtLink
+                  :to="detailLink"
+                  class="block text-base font-bold leading-snug text-white transition-colors hover:text-emerald-300"
+                >
+                  {{ watchData.anime.titleRu || watchData.anime.title }}
+                </NuxtLink>
+                <p class="text-xs text-slate-500">
+                  {{ [watchData.anime.year, watchData.anime.status].filter(Boolean).join(' · ') }}
+                </p>
+                <p
+                  v-if="watchData.anime.description"
+                  class="line-clamp-5 text-sm leading-[1.7] text-slate-400"
+                >
+                  {{ watchData.anime.description }}
+                </p>
+                <NuxtLink
+                  :to="detailLink"
+                  class="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-2 text-xs text-slate-400 transition-all hover:border-emerald-500/25 hover:bg-emerald-500/[0.07] hover:text-emerald-400"
+                >
+                  Страница тайтла
+                  <UIcon name="lucide:arrow-right" class="size-3" />
+                </NuxtLink>
+              </div>
             </div>
           </div>
         </aside>
@@ -427,7 +514,7 @@ useHead({
 <style scoped>
 .slide-up-enter-active,
 .slide-up-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.22s ease, transform 0.22s ease;
 }
 
 .slide-up-enter-from,

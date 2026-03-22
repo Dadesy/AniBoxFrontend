@@ -1,76 +1,159 @@
 <template>
   <div class="min-h-screen bg-cinema-base">
-    <div v-if="pending" class="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8">
-      <div class="h-[32rem] rounded-[32px] skeleton-shine" />
+
+    <!-- ── Skeleton ─────────────────────────────────────────────────────── -->
+    <div v-if="pending" class="mx-auto max-w-screen-xl px-4 py-14 sm:px-6 lg:px-8">
+      <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_19rem]">
+        <div class="space-y-6">
+          <div class="flex gap-2">
+            <div v-for="n in 3" :key="n" class="h-7 w-20 rounded-full bg-white/[0.07] skeleton-shine" />
+          </div>
+          <div class="space-y-3">
+            <div class="h-14 w-3/4 rounded-2xl bg-white/10 skeleton-shine" />
+            <div class="h-5 w-1/2 rounded-xl bg-white/[0.06] skeleton-shine" />
+          </div>
+          <div class="space-y-2">
+            <div v-for="n in 3" :key="n" class="h-4 rounded-lg bg-white/[0.07] skeleton-shine" :style="{ width: n === 3 ? '65%' : '100%' }" />
+          </div>
+          <div class="flex gap-2">
+            <div class="h-12 w-36 rounded-2xl bg-white/10 skeleton-shine" />
+            <div class="h-12 w-28 rounded-2xl bg-white/[0.06] skeleton-shine" />
+          </div>
+        </div>
+        <div class="mx-auto hidden w-full max-w-[19rem] lg:block">
+          <div class="aspect-[2/3] rounded-3xl bg-white/[0.07] skeleton-shine" />
+        </div>
+      </div>
     </div>
 
+    <!-- ── Not found ─────────────────────────────────────────────────────── -->
     <div v-else-if="!detail" class="flex min-h-[60vh] items-center justify-center px-4 text-center">
       <div class="space-y-4">
         <UIcon name="lucide:alert-circle" class="mx-auto size-12 text-red-400" />
         <p class="text-slate-300">Тайтл не найден</p>
-        <NuxtLink to="/" class="inline-flex min-h-11 items-center justify-center rounded-2xl bg-emerald-500 px-5 text-sm font-semibold text-black">
+        <NuxtLink
+          to="/"
+          class="inline-flex min-h-11 items-center justify-center rounded-2xl bg-emerald-500 px-5 text-sm font-semibold text-black"
+        >
           На главную
         </NuxtLink>
       </div>
     </div>
 
+    <!-- ── Main content ──────────────────────────────────────────────────── -->
     <template v-else>
-      <section class="relative overflow-hidden">
-        <div class="absolute inset-0">
-          <img
-            v-if="detail.poster || detail.posterUrl"
-            :src="detail.poster || detail.posterUrl"
-            :alt="detail.titleRu || detail.title"
-            class="h-full w-full object-cover blur-2xl"
-            style="filter: brightness(0.3) saturate(0.8)"
-          >
-        </div>
-        <div class="absolute inset-0 bg-linear-to-r from-cinema-base via-cinema-base/85 to-cinema-base/55" />
-        <div class="absolute inset-0 bg-linear-to-t from-cinema-base via-cinema-base/30 to-black/30" />
 
-        <div class="relative mx-auto grid max-w-screen-xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:px-8 lg:py-14">
-          <div class="space-y-5">
-            <div class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-300/80">
-              <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">{{ detail.status || 'anime' }}</span>
-              <span v-if="detail.year" class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">{{ detail.year }}</span>
-              <span v-if="detail.rating || detail.score" class="rounded-full border border-emerald-500/30 bg-emerald-500/15 px-3 py-1.5 text-emerald-300">
+      <!-- ═══════════════════════════════════════════════════════════════
+           HERO
+      ════════════════════════════════════════════════════════════════ -->
+      <section class="relative overflow-hidden" style="min-height: min(640px, 92vw);">
+
+        <!-- Parallax poster backdrop -->
+        <div class="pointer-events-none absolute inset-0 overflow-hidden">
+          <img
+            v-if="heroImage"
+            :src="heroImage"
+            :alt="detail.titleRu || detail.title"
+            referrerpolicy="no-referrer"
+            class="absolute left-0 top-0 h-[120%] w-full object-cover will-change-transform"
+            :style="{ transform: `translateY(${parallaxY}px)`, filter: 'brightness(0.16) saturate(0.6) blur(1px)' }"
+          />
+        </div>
+
+        <!-- Gradient vignettes -->
+        <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-cinema-base via-cinema-base/85 to-cinema-base/40" />
+        <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-cinema-base via-cinema-base/10 to-transparent" />
+
+        <!-- Emerald top shimmer -->
+        <div
+          class="pointer-events-none absolute inset-x-0 top-0 h-px"
+          style="background: linear-gradient(90deg, transparent 0%, rgba(16,185,129,0.20) 50%, transparent 100%);"
+          aria-hidden="true"
+        />
+
+        <!-- Grid -->
+        <div class="relative mx-auto grid max-w-screen-xl gap-8 px-4 py-14 sm:px-6 lg:grid-cols-[minmax(0,1fr)_19rem] lg:px-8 lg:py-20">
+
+          <!-- ── Left: Info ── -->
+          <div class="space-y-6">
+
+            <!-- Meta badges -->
+            <div class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
+              <span
+                v-if="detail.status"
+                class="rounded-full border border-white/[0.09] bg-white/[0.05] px-3 py-1.5 text-slate-300/80"
+              >
+                {{ detail.status }}
+              </span>
+              <span
+                v-if="detail.year"
+                class="rounded-full border border-white/[0.09] bg-white/[0.05] px-3 py-1.5 text-slate-300/80"
+              >
+                {{ detail.year }}
+              </span>
+              <span
+                v-if="detail.rating || detail.score"
+                class="rounded-full border border-emerald-500/30 bg-emerald-500/12 px-3 py-1.5 text-emerald-300"
+              >
                 ★ {{ (detail.rating ?? detail.score)?.toFixed(1) }}
               </span>
             </div>
 
-            <div class="space-y-2">
-              <h1 class="max-w-3xl text-3xl font-black tracking-tight text-white sm:text-5xl">
+            <!-- Title -->
+            <div class="space-y-1.5">
+              <h1 class="max-w-3xl text-4xl font-black leading-[1.07] tracking-tight text-white sm:text-[3.25rem]">
                 {{ detail.titleRu || detail.title }}
               </h1>
-              <p v-if="detail.originalTitle && detail.originalTitle !== (detail.titleRu || detail.title)" class="text-sm text-slate-400">
+              <p
+                v-if="detail.originalTitle && detail.originalTitle !== (detail.titleRu || detail.title)"
+                class="text-sm text-slate-400/75"
+              >
                 {{ detail.originalTitle }}
               </p>
             </div>
 
-            <p v-if="detail.description" class="max-w-3xl text-sm leading-7 text-slate-200/90 sm:text-base">
-              {{ detail.description }}
-            </p>
+            <!-- Description (collapsible) -->
+            <div v-if="detail.description" class="max-w-2xl">
+              <p
+                class="text-[0.9375rem] leading-[1.78] text-slate-200/80"
+                :class="descExpanded ? '' : 'line-clamp-3'"
+              >
+                {{ detail.description }}
+              </p>
+              <button
+                v-if="!descExpanded && detail.description.length > 160"
+                type="button"
+                class="mt-1.5 text-sm text-emerald-400 transition-colors hover:text-emerald-300"
+                @click="descExpanded = true"
+              >
+                Читать далее →
+              </button>
+            </div>
 
-            <div v-if="detail.genres.length" class="flex flex-wrap gap-2">
+            <!-- Genres -->
+            <div v-if="detail.genres.length" class="flex flex-wrap gap-1.5">
               <span
                 v-for="genre in detail.genres"
                 :key="genre"
-                class="rounded-full border border-white/10 bg-white/6 px-3 py-1.5 text-xs text-slate-300"
+                class="rounded-full border border-white/[0.08] bg-white/[0.035] px-3 py-1 text-[0.75rem] text-slate-300/70 transition-colors hover:border-emerald-500/22 hover:text-emerald-300/80"
               >
                 {{ genre }}
               </span>
             </div>
 
-            <div class="flex flex-wrap gap-3 pt-2">
+            <!-- CTA -->
+            <div class="flex flex-wrap items-center gap-3 pt-1">
               <button
                 type="button"
-                class="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-6 text-sm font-semibold transition-all"
-                :class="detail.player?.watchAvailable ? 'bg-emerald-500 text-black hover:bg-emerald-400' : 'cursor-not-allowed border border-white/10 bg-white/[0.05] text-slate-500'"
+                class="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-7 text-sm font-semibold transition-all duration-200"
+                :class="detail.player?.watchAvailable
+                  ? 'bg-emerald-500 text-black hover:bg-emerald-400 shadow-[0_0_24px_rgba(16,185,129,0.30)] hover:shadow-[0_0_36px_rgba(16,185,129,0.50)]'
+                  : 'cursor-not-allowed border border-white/10 bg-white/[0.05] text-slate-500'"
                 :disabled="!detail.player?.watchAvailable"
                 @click="goWatch()"
               >
                 <UIcon name="lucide:play" class="size-4" />
-                {{ continueProgress ? 'Продолжить просмотр' : 'Смотреть' }}
+                {{ continueProgress ? 'Продолжить' : 'Смотреть' }}
               </button>
 
               <AddToListButton
@@ -84,8 +167,9 @@
               />
             </div>
 
-            <div v-if="detail.player?.availablePlayers?.length" class="space-y-2 pt-2">
-              <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Плеер</p>
+            <!-- Player selector -->
+            <div v-if="detail.player?.availablePlayers?.length" class="space-y-2 pt-1">
+              <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500/80">Источник видео</p>
               <PlayerSelector
                 :players="detail.player.availablePlayers"
                 :active-external-id="activePlayerExternalId"
@@ -93,31 +177,45 @@
               />
             </div>
 
-            <div v-if="detail.watchBlockedReason" class="rounded-3xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            <!-- Blocked reason -->
+            <div
+              v-if="detail.watchBlockedReason"
+              class="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
+            >
               {{ detail.watchBlockedReason }}
             </div>
           </div>
 
-          <div class="mx-auto w-full max-w-[18rem]">
-            <div class="overflow-hidden rounded-[32px] border border-white/10 bg-black/30 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
-              <img
-                v-if="detail.poster || detail.posterUrl"
-                :src="detail.poster || detail.posterUrl"
-                :alt="detail.titleRu || detail.title"
-                class="aspect-[2/3] w-full object-cover"
+          <!-- ── Right: Sticky poster card ── -->
+          <div class="hidden lg:block">
+            <div class="sticky top-6">
+              <div
+                class="overflow-hidden rounded-3xl border border-white/[0.08] bg-black/30"
+                style="box-shadow: 0 24px 64px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04);"
               >
-              <div class="space-y-3 px-5 py-5">
-                <div class="flex items-center justify-between text-sm">
-                  <span class="text-slate-400">Источник</span>
-                  <span class="font-medium text-white">{{ sourceLine }}</span>
+                <div class="relative overflow-hidden">
+                  <img
+                    v-if="detail.poster || detail.posterUrl"
+                    :src="detail.poster || detail.posterUrl"
+                    :alt="detail.titleRu || detail.title"
+                    referrerpolicy="no-referrer"
+                    class="aspect-[2/3] w-full object-cover"
+                  />
+                  <div class="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/55 to-transparent" />
                 </div>
-                <div class="flex items-center justify-between text-sm">
-                  <span class="text-slate-400">Серий</span>
-                  <span class="font-medium text-white">{{ detail.player?.availableEpisodes || detail.episodesCount || '—' }}</span>
-                </div>
-                <div class="flex items-center justify-between text-sm">
-                  <span class="text-slate-400">Статус</span>
-                  <span class="font-medium text-white">{{ detail.status || '—' }}</span>
+                <div class="divide-y divide-white/[0.05] px-5 py-2">
+                  <div class="flex items-center justify-between py-2.5 text-sm">
+                    <span class="text-slate-500">Источник</span>
+                    <span class="font-medium text-white">{{ sourceLine }}</span>
+                  </div>
+                  <div class="flex items-center justify-between py-2.5 text-sm">
+                    <span class="text-slate-500">Серий</span>
+                    <span class="font-medium text-white">{{ detail.player?.availableEpisodes || detail.episodesCount || '—' }}</span>
+                  </div>
+                  <div class="flex items-center justify-between py-2.5 text-sm">
+                    <span class="text-slate-500">Статус</span>
+                    <span class="font-medium text-white">{{ detail.status || '—' }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -125,15 +223,76 @@
         </div>
       </section>
 
-      <section v-if="relatedCards.length" class="mx-auto max-w-screen-xl space-y-4 px-4 py-8 sm:px-6 lg:px-8">
-        <div>
-          <h2 class="text-xl font-bold text-white">Похожее и связанное</h2>
-          <p class="text-sm text-slate-400">Переходы остаются внутри единого каталога</p>
+      <!-- ── Mobile poster ── -->
+      <div class="mx-auto max-w-xs px-4 pb-8 pt-2 lg:hidden">
+        <div
+          class="overflow-hidden rounded-3xl border border-white/[0.08] bg-black/30"
+          style="box-shadow: 0 16px 40px rgba(0,0,0,0.45);"
+        >
+          <img
+            v-if="detail.poster || detail.posterUrl"
+            :src="detail.poster || detail.posterUrl"
+            :alt="detail.titleRu || detail.title"
+            referrerpolicy="no-referrer"
+            class="aspect-[2/3] w-full object-cover"
+          />
+          <div class="divide-y divide-white/[0.05] px-5 py-2">
+            <div class="flex items-center justify-between py-2.5 text-sm">
+              <span class="text-slate-500">Источник</span>
+              <span class="font-medium text-white">{{ sourceLine }}</span>
+            </div>
+            <div class="flex items-center justify-between py-2.5 text-sm">
+              <span class="text-slate-500">Серий</span>
+              <span class="font-medium text-white">{{ detail.player?.availableEpisodes || detail.episodesCount || '—' }}</span>
+            </div>
+            <div class="flex items-center justify-between py-2.5 text-sm">
+              <span class="text-slate-500">Статус</span>
+              <span class="font-medium text-white">{{ detail.status || '—' }}</span>
+            </div>
+          </div>
         </div>
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          <AnimeCard v-for="card in relatedCards" :key="card.slug" :card="card" />
-        </div>
-      </section>
+      </div>
+
+      <!-- Section divider -->
+      <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+        <div
+          class="h-px w-full"
+          style="background: linear-gradient(90deg, transparent 0%, rgba(16,185,129,0.14) 50%, transparent 100%);"
+          aria-hidden="true"
+        />
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════════════
+           CONTENT BELOW HERO (reveal on scroll)
+      ════════════════════════════════════════════════════════════════ -->
+      <div
+        ref="revealRef"
+        class="mx-auto max-w-screen-xl space-y-14 px-4 py-12 transition-all duration-700 sm:px-6 lg:px-8"
+        :class="revealVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'"
+      >
+
+        <!-- Related -->
+        <section v-if="relatedCards.length">
+          <div class="mb-5 flex items-center gap-2.5">
+            <div class="h-[1.1em] w-[3px] shrink-0 rounded-full bg-emerald-500/65" aria-hidden="true" />
+            <h2 class="text-xl font-bold text-white">Похожее и связанное</h2>
+            <p class="text-sm text-slate-500">Переходы внутри единого каталога</p>
+          </div>
+          <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            <AnimeCard v-for="card in relatedCards" :key="card.slug" :card="card" />
+          </div>
+        </section>
+
+        <!-- Reviews -->
+        <section v-if="detail.externalId">
+          <div class="mb-5 flex items-center gap-2.5">
+            <div class="h-[1.1em] w-[3px] shrink-0 rounded-full bg-emerald-500/65" aria-hidden="true" />
+            <h2 class="text-xl font-bold text-white">Отзывы и оценки</h2>
+          </div>
+          <ReviewList :anime-id="detail.externalId" />
+        </section>
+      </div>
+
     </template>
   </div>
 </template>
@@ -142,6 +301,7 @@
 import AddToListButton from '~/components/library/AddToListButton.vue'
 import AnimeCard from '~/components/anime/AnimeCard.vue'
 import PlayerSelector from '~/components/anime/PlayerSelector.vue'
+import ReviewList from '~/components/anime/ReviewList.vue'
 import { getAnimeById } from '~/services/animeService'
 import type { AnimeCardDto, AnimeDetail, EpisodeProgress } from '~/types/content'
 
@@ -208,6 +368,39 @@ const sourceLine = computed(() => {
   return players.map((player) => player.label).join(' / ')
 })
 
+const heroImage = computed(() => detail.value?.poster || detail.value?.posterUrl || null)
+
+// ── UI state ──────────────────────────────────────────────────────────
+const descExpanded = ref(false)
+
+// ── Parallax ─────────────────────────────────────────────────────────
+const scrollY = ref(0)
+const parallaxY = computed(() => Math.min(scrollY.value * 0.28, 130))
+
+onMounted(() => {
+  const handleScroll = () => { scrollY.value = window.scrollY }
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  onUnmounted(() => window.removeEventListener('scroll', handleScroll))
+})
+
+// ── Reveal on scroll ─────────────────────────────────────────────────
+const revealRef = ref<HTMLElement | null>(null)
+const revealVisible = ref(false)
+
+onMounted(() => {
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      if (entry?.isIntersecting) {
+        revealVisible.value = true
+        observer.disconnect()
+      }
+    },
+    { threshold: 0.04, rootMargin: '0px 0px -20px 0px' },
+  )
+  if (revealRef.value) observer.observe(revealRef.value)
+})
+
+// ── Navigation ───────────────────────────────────────────────────────
 function buildWatchUrl(targetSlug?: string): string {
   const target = targetSlug ?? detail.value?.slug ?? slug.value
   const params = new URLSearchParams()

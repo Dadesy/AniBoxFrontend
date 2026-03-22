@@ -14,10 +14,10 @@
         />
         <div class="min-w-0 space-y-1">
           <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-400/90">
-            Техработы · плеер
+            Техработы · источники
           </p>
           <p class="text-sm leading-snug text-white/80">
-            Просмотр может быть недоступен. Каталог и аккаунт работают в обычном режиме.
+            {{ bannerText }}
           </p>
         </div>
       </div>
@@ -35,12 +35,46 @@
 </template>
 
 <script setup lang="ts">
-const { isKodikDown } = useKodikStatus()
+const {
+  hasMaintenance,
+  isAnilibriaDown,
+  isKodikDown,
+  isShikimoriDown,
+} = useKodikStatus()
 const { bootOverlayRemoved } = useAppLoader()
 const dismissed = ref(false)
 
+const issueKey = computed(() => [
+  isAnilibriaDown.value ? 'anilibria' : '',
+  isKodikDown.value ? 'kodik' : '',
+  isShikimoriDown.value ? 'shikimori' : '',
+].filter(Boolean).join('|'))
+
+watch(issueKey, (next, prev) => {
+  if (next && next !== prev) dismissed.value = false
+})
+
+const bannerText = computed(() => {
+  if (isShikimoriDown.value && isKodikDown.value) {
+    return 'Shikimori и Kodik временно недоступны. Просмотр части тайтлов и метаданные могут работать с ограничениями.'
+  }
+  if (isShikimoriDown.value) {
+    return 'Shikimori временно недоступен. Метаданные, карточки и часть переходов могут работать с ограничениями.'
+  }
+  if (isKodikDown.value && isAnilibriaDown.value) {
+    return 'Оба плеера временно недоступны. Просмотр может быть ограничен до восстановления источников.'
+  }
+  if (isKodikDown.value) {
+    return 'Kodik временно недоступен. Просмотр части тайтлов может быть ограничен, AniLibria продолжает работать.'
+  }
+  if (isAnilibriaDown.value) {
+    return 'AniLibria временно недоступна. Просмотр части релизов может быть ограничен, остальные разделы работают.'
+  }
+  return 'Один из источников временно недоступен. Возможны ограничения в просмотре и метаданных.'
+})
+
 const show = computed(
-  () => bootOverlayRemoved.value && isKodikDown.value && !dismissed.value,
+  () => bootOverlayRemoved.value && hasMaintenance.value && !dismissed.value,
 )
 </script>
 
