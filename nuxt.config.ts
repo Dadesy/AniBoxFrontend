@@ -90,9 +90,13 @@ export default defineNuxtConfig({
     },
     provider: 'server',        // serve icons from SSR, no external CDN calls
   },
+  /*
+   * srcDir = app/ (Nuxt 4): каталог компонентов — ~/components, не ~/app/components
+   * (иначе автоимпорт не срабатывает — CookieBanner, AppImage и др.).
+   */
   components: [
     {
-      path: '~/app/components',
+      path: '~/components',
       pathPrefix: false,
     },
   ],
@@ -149,7 +153,10 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico', sizes: 'any' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
         { rel: 'manifest', href: '/site.webmanifest' },
+        // Preconnect — reduces first-poster latency (LCP)
         { rel: 'preconnect', href: 'https://anilibria.top' },
+        { rel: 'preconnect', href: 'https://shikimori.one' },
+        { rel: 'dns-prefetch', href: 'https://shikimori.one' },
       ],
       script: yandexMetrikaHeadScripts,
       meta: [

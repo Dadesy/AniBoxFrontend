@@ -68,14 +68,18 @@ const cardWidth = computed(() => props.cardSize === 'sm' ? 'w-[138px]' : 'w-[162
     ref="sectionRef"
     class="relative"
     :class="[
-      'transition-[opacity,transform] duration-500 ease-out',
-      revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5',
+      'transition-[opacity,transform] duration-500 ease-out motion-reduce:duration-200',
+      revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5 motion-reduce:translate-y-0',
     ]"
   >
     <!-- Section header -->
-    <div class="mb-3 flex items-center justify-between px-4 sm:px-6">
-      <div class="flex items-center gap-2">
-        <h2 class="text-[15px] font-semibold text-zinc-100 tracking-tight">{{ title }}</h2>
+    <div class="mb-3 flex items-end justify-between gap-3 px-4 sm:px-6">
+      <div class="flex min-w-0 items-center gap-2">
+        <h2
+          class="truncate text-[clamp(0.9rem,2.4vw,1rem)] font-bold tracking-tight text-[var(--logo-text)]"
+        >
+          {{ title }}
+        </h2>
         <span
           v-if="sourceBadge"
           class="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/8 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-400"
@@ -107,7 +111,7 @@ const cardWidth = computed(() => props.cardSize === 'sm' ? 'w-[138px]' : 'w-[162
         <NuxtLink
           v-if="seeAllHref && !loading"
           :to="seeAllHref"
-          class="text-[12px] text-zinc-500 hover:text-emerald-400 transition-colors"
+          class="shrink-0 text-[12px] font-semibold text-[var(--ui-text-muted)] transition-colors hover:text-[var(--accent-green)]"
         >
           Все →
         </NuxtLink>
@@ -117,8 +121,8 @@ const cardWidth = computed(() => props.cardSize === 'sm' ? 'w-[138px]' : 'w-[162
     <!-- Scroll track -->
     <div
       ref="track"
-      class="scrollbar-hide flex gap-2.5 overflow-x-auto px-4 pb-1 sm:px-6"
-      style="scroll-snap-type: x mandatory;"
+      class="scrollbar-hide flex gap-[var(--app-card-gap)] overflow-x-auto overscroll-x-contain px-4 pb-1 sm:px-6"
+      style="scroll-snap-type: x mandatory; scroll-padding-inline: max(1rem, env(safe-area-inset-left));"
     >
       <!-- Skeleton cards: staggered shimmer while loading -->
       <template v-if="loading">
@@ -128,7 +132,7 @@ const cardWidth = computed(() => props.cardSize === 'sm' ? 'w-[138px]' : 'w-[162
           :class="['flex-shrink-0', cardWidth]"
         >
           <div
-            class="aspect-[2/3] w-full rounded-xl bg-cinema-card skeleton-shine"
+            class="aspect-[2/3] w-full rounded-[var(--app-radius-lg)] bg-cinema-card skeleton-shine"
             :style="{ animationDelay: `${(n - 1) * 80}ms` }"
           />
         </div>

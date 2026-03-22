@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppImage from '~/components/common/AppImage.vue'
 import type { NormalizedAnimeCard } from '~/types/metadata'
 import { KIND_LABELS } from '~/types/metadata'
 import { navigateToCard } from '~/composables/useMetadata'
@@ -166,6 +167,11 @@ watch(current, () => { progressKey.value++ })
         class="absolute inset-0"
         style="background: linear-gradient(to top, rgba(8,8,10,0.97) 0%, rgba(8,8,10,0.5) 38%, transparent 68%);"
       />
+      <!-- Vignette: киношная кромка, не перебивает читаемость текста -->
+      <div
+        class="pointer-events-none absolute inset-0 z-[1]"
+        style="background: radial-gradient(ellipse 85% 65% at 50% 100%, transparent 40%, rgba(0,0,0,0.45) 100%);"
+      />
     </div>
 
     <!--
@@ -186,48 +192,48 @@ watch(current, () => { progressKey.value++ })
             v-if="hasSharpPoster"
             class="order-first flex shrink-0 justify-center sm:order-last sm:w-[min(200px,42vw)] sm:justify-end md:w-[212px] lg:w-[236px]"
           >
-            <div
-              class="aspect-[2/3] w-[min(132px,36vw)] overflow-hidden rounded-2xl shadow-2xl shadow-black/60 ring-1 ring-white/10 sm:w-full"
-            >
-              <img
-                :src="poster(card)"
-                :alt="displayTitle"
-                class="h-full w-full object-cover"
-                loading="eager"
-                decoding="async"
-              />
-            </div>
+            <AppImage
+              :src="poster(card)"
+              :alt="displayTitle"
+              aspect-ratio="2/3"
+              :priority="true"
+              wrapper-class="w-[min(132px,36vw)] overflow-hidden rounded-[var(--app-radius-2xl)] shadow-2xl shadow-black/60 ring-1 ring-white/12 sm:w-full"
+            />
           </div>
 
           <div class="min-w-0 flex-1 space-y-2.5 sm:space-y-3 lg:pb-0.5">
             <div class="flex flex-wrap items-center gap-2">
               <span
                 v-if="isOngoing"
-                class="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400 sm:text-[11px]"
+                class="app-chip app-chip--live"
               >
-                <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+                <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--accent-green)] motion-reduce:animate-none" />
                 Онгоинг
               </span>
               <span
                 v-else-if="card.status === 'anons'"
-                class="text-[10px] font-bold uppercase tracking-widest text-sky-400 sm:text-[11px]"
+                class="app-chip app-chip--sky"
               >
                 Анонс
               </span>
-              <span v-if="kindLabel" class="text-[10px] font-semibold uppercase tracking-widest text-white/45 sm:text-[11px]">
+              <span
+                v-if="kindLabel"
+                class="app-chip"
+              >
                 {{ kindLabel }}
               </span>
               <template v-if="card.score">
-                <span class="text-[10px] text-white/25 sm:text-xs">·</span>
-                <span class="text-[11px] font-bold text-yellow-400 sm:text-xs">★ {{ card.score.toFixed(1) }}</span>
+                <span class="app-chip app-chip--rating">
+                  ★ {{ card.score.toFixed(1) }}
+                </span>
               </template>
             </div>
 
-            <h1 class="line-clamp-3 text-xl font-extrabold leading-[1.15] tracking-tight text-white sm:line-clamp-2 sm:text-3xl lg:text-[2.15rem] lg:leading-tight">
+            <h1 class="text-display-fluid line-clamp-3 text-white sm:line-clamp-2">
               {{ displayTitle }}
             </h1>
 
-            <p class="text-xs font-medium text-white/45 sm:text-sm">
+            <p class="text-xs font-medium text-white/50 sm:text-sm">
               {{ [card.year, episodeLabel].filter(Boolean).join(' · ') }}
             </p>
 
@@ -235,7 +241,7 @@ watch(current, () => { progressKey.value++ })
               <span
                 v-for="g in (card.genres ?? []).slice(0, 3)"
                 :key="g"
-                class="rounded-full border border-white/12 px-2 py-0.5 text-[10px] text-white/45 sm:text-[11px]"
+                class="app-chip app-chip--genre"
               >
                 {{ g }}
               </span>
@@ -244,7 +250,7 @@ watch(current, () => { progressKey.value++ })
             <div class="flex flex-wrap items-stretch gap-2.5 pt-1 sm:gap-3 sm:pt-1.5">
               <button
                 type="button"
-                class="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 text-sm font-bold text-white shadow-lg shadow-emerald-500/20 transition-all hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-60 sm:flex-initial sm:px-7"
+                class="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-[var(--app-radius-md)] bg-emerald-500 px-5 text-sm font-bold text-white shadow-lg shadow-emerald-500/25 transition-all hover:bg-emerald-400 active:scale-[0.98] motion-reduce:active:scale-100 disabled:opacity-60 sm:flex-initial sm:px-7"
                 :disabled="navigating"
                 @click="handleWatch"
               >
@@ -255,7 +261,7 @@ watch(current, () => { progressKey.value++ })
 
               <button
                 type="button"
-                class="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-white/14 px-4 text-sm font-medium text-white/72 transition-all hover:border-white/25 hover:text-white disabled:opacity-60 sm:flex-initial sm:px-5"
+                class="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-[var(--app-radius-md)] border border-white/18 bg-white/[0.04] px-4 text-sm font-medium text-white/80 backdrop-blur-[2px] transition-all hover:border-white/28 hover:bg-white/[0.07] hover:text-white disabled:opacity-60 sm:flex-initial sm:px-5"
                 :disabled="navigating"
                 @click="handleDetail"
               >

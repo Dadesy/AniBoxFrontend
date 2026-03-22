@@ -42,5 +42,5 @@ export const PRESET_AVATAR_SEEDS: Array<{ id: string; seed: string }> = [
 ]
 
 export function presetAvatarUrl(seed: string): string {
-  return `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(seed)}&backgroundColor=0d0d10`
+  return `/avatars/${seed.toLowerCase()}.svg`
 }

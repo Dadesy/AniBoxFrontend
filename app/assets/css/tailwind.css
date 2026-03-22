@@ -18,4 +18,11 @@
   --radius-xl:  10px;
   --radius-2xl: 12px;
   --radius-3xl: 16px;
+
+  /* Синхрон с app shell в main.css (карточки, кнопки «как в приложении») */
+  --radius-app-sm: var(--app-radius-sm, 0.5rem);
+  --radius-app-md: var(--app-radius-md, 0.75rem);
+  --radius-app-lg: var(--app-radius-lg, 1rem);
+  --radius-app-xl: var(--app-radius-xl, 1.25rem);
+  --radius-app-2xl: var(--app-radius-2xl, 1.5rem);
 }

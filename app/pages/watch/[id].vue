@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-cinema-base pt-16">
+  <div class="min-h-screen bg-cinema-base">
     <div class="flex items-center gap-3 border-b border-white/5 px-4 py-3 sm:px-6 lg:px-8">
       <NuxtLink
         :to="`/title/${encodeURIComponent(externalId)}`"

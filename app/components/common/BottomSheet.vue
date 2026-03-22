@@ -14,6 +14,7 @@
       >
         <button
           type="button"
+          tabindex="-1"
           class="absolute inset-0 bg-black/55 backdrop-blur-[2px] motion-safe:transition-opacity"
           aria-label="Закрыть"
           @click="close"
@@ -59,6 +60,7 @@
 
 <script setup lang="ts">
 import { useSwipeToDismiss } from '~/composables/useGesture'
+import { useFocusTrap } from '~/composables/useFocusTrap'
 
 const open = defineModel<boolean>('open', { default: false })
 
@@ -88,6 +90,8 @@ function close() {
 }
 
 useSwipeToDismiss(handleRef, close, { threshold: 64 })
+
+useFocusTrap(panelRef, open)
 
 function setBodyLock(locked: boolean) {
   if (!import.meta.client) return

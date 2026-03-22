@@ -1,7 +1,10 @@
 <template>
   <div
-    class="relative overflow-hidden rounded-xl bg-cinema-card transition-transform duration-300 ease-out"
-    :class="!noPlay && 'group-hover:scale-[1.04] group-hover:z-10 group-hover:shadow-2xl group-hover:shadow-black/70'"
+    class="relative overflow-hidden rounded-[var(--app-radius-lg)] bg-cinema-card shadow-sm shadow-black/20 ring-1 ring-[var(--cinema-border)] transition-[transform,box-shadow,ring-color] duration-300 ease-out"
+    :class="
+      !noPlay
+        && 'group-hover:z-10 group-hover:scale-[1.03] group-hover:shadow-2xl group-hover:shadow-black/60 group-hover:ring-[var(--accent-green-border)]/35'
+    "
   >
     <!--
       Poster — replaced raw <img> with AppImage.
@@ -37,7 +40,7 @@
       <div class="absolute left-2 top-2">
         <span
           :class="[
-            'rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide',
+            'inline-flex items-center rounded-[var(--app-radius-sm)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide',
             badgeClass,
           ]"
         >
@@ -48,9 +51,9 @@
       <!-- Score badge -->
       <div
         v-if="scoreValue !== null"
-        class="absolute right-2 top-2 flex items-center gap-0.5 rounded-sm bg-black/65 px-1 py-0.5"
+        class="app-chip app-chip--rating absolute right-2 top-2 flex items-center gap-0.5 py-0.5 pl-1 pr-1.5"
       >
-        <UIcon name="lucide:star" class="h-2.5 w-2.5 fill-current text-yellow-400" />
+        <UIcon name="lucide:star" class="h-2.5 w-2.5 shrink-0 fill-current text-yellow-400" />
         <span :class="['text-[10px] font-bold', scoreColor]">
           {{ scoreValue.toFixed(1) }}
         </span>
@@ -61,7 +64,7 @@
         <p class="line-clamp-2 text-xs font-semibold leading-tight text-white">
           {{ displayTitle }}
         </p>
-        <p v-if="yearLabel !== null" class="mt-0.5 text-[10px] text-slate-400">
+        <p v-if="yearLabel !== null" class="mt-0.5 text-[10px] text-[var(--ui-text-muted)]">
           {{ yearLabel }}
         </p>
       </div>
@@ -81,13 +84,13 @@
       <!-- Hover border glow -->
       <div
         v-if="!noPlay"
-        class="pointer-events-none absolute inset-0 rounded-xl opacity-0 ring-1 ring-green-500/40 transition-opacity duration-300 group-hover:opacity-100"
+        class="pointer-events-none absolute inset-0 rounded-[var(--app-radius-lg)] opacity-0 ring-1 ring-[var(--accent-green)]/35 transition-opacity duration-300 group-hover:opacity-100"
       />
 
       <!-- "Нет плеера" label for non-playable catalogue entries -->
       <div
         v-if="noPlay"
-        class="pointer-events-none absolute inset-0 flex items-end justify-end rounded-xl p-2"
+        class="pointer-events-none absolute inset-0 flex items-end justify-end rounded-[var(--app-radius-lg)] p-2"
       >
         <span class="rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] text-slate-400">
           нет плеера

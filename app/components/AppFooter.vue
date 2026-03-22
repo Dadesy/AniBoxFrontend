@@ -7,7 +7,7 @@
     class="mt-12 border-t border-white/[0.06] bg-cinema-base/80"
     :class="
       padForBottomNav
-        ? 'max-lg:pb-[calc(3.5rem+env(safe-area-inset-bottom,0px)+12px)]'
+        ? 'max-lg:pb-[calc(var(--app-bottom-nav-height)+12px)]'
         : ''
     "
     role="contentinfo"
@@ -82,6 +82,11 @@
                   Библиотека
                 </NuxtLink>
               </li>
+              <li>
+                <NuxtLink to="/about" class="transition-colors hover:text-white">
+                  О сайте
+                </NuxtLink>
+              </li>
             </ul>
           </div>
         </nav>
@@ -101,6 +106,10 @@
           <NuxtLink to="/schedule" class="hover:text-slate-400">Расписание</NuxtLink>
           <span class="mx-2 text-slate-700">·</span>
           <NuxtLink to="/updates" class="hover:text-slate-400">Обновления</NuxtLink>
+          <span class="mx-2 text-slate-700">·</span>
+          <NuxtLink to="/about" class="hover:text-slate-400">О сайте</NuxtLink>
+          <span class="mx-2 text-slate-700">·</span>
+          <NuxtLink to="/privacy" class="hover:text-slate-400">Конфиденциальность</NuxtLink>
         </p>
       </div>
     </div>

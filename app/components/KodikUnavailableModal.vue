@@ -2,12 +2,17 @@
 /**
  * Одноразово за сессию — если плеер недоступен (по статусу с сервера).
  */
+import { useFocusTrap } from '~/composables/useFocusTrap'
+
 const STORAGE_KEY = 'site-player-unavailable-modal-dismissed'
 
 const { isKodikDown } = useKodikStatus()
 const { bootOverlayRemoved } = useAppLoader()
 
 const open = ref(false)
+const kodikTrapRef = ref<HTMLElement | null>(null)
+
+useFocusTrap(kodikTrapRef, open)
 
 function isDismissed(): boolean {
   if (!import.meta.client) return false
@@ -95,7 +100,10 @@ function onConfirm() {
           @click="onConfirm"
         />
 
-        <div class="kodik-modal-panel relative z-10 w-full max-w-md overflow-hidden rounded-2xl">
+        <div
+          ref="kodikTrapRef"
+          class="kodik-modal-panel relative z-10 w-full max-w-md overflow-hidden rounded-[var(--app-radius-2xl)]"
+        >
           <div class="kodik-modal-accent" aria-hidden="true" />
 
           <div class="kodik-modal-inner px-5 pb-5 pt-4 sm:px-6 sm:pb-6 sm:pt-5">

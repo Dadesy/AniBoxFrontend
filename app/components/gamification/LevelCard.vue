@@ -1,192 +1,89 @@
-<template>
-  <div class="level-card" :class="`tier-${progress.tier}`">
-    <!-- Tier glow orb background -->
-    <div class="level-card__orb" aria-hidden="true" />
-
-    <!-- Left: level number + icon -->
-    <div class="level-card__badge">
-      <div class="level-icon" :class="`level-icon--${progress.tier}`">
-        <span class="level-icon__symbol" aria-hidden="true">{{ tierIcon }}</span>
-        <span class="level-icon__number">{{ progress.level }}</span>
-      </div>
-    </div>
-
-    <!-- Right: title + bar + EXP numbers -->
-    <div class="level-card__body">
-      <div class="level-card__header">
-        <span class="level-card__title">{{ progress.levelTitle }}</span>
-        <span class="level-card__lvl-label">Уровень {{ progress.level }}</span>
-      </div>
-
-      <ExpProgressBar
-        :pct="progress.progressPct"
-        :show-label="true"
-        :animate="true"
-        class="level-card__bar"
-      />
-
-      <div class="level-card__exp-row">
-        <span class="level-card__exp-cur">
-          {{ progress.exp.toLocaleString('ru-RU') }} EXP
-        </span>
-        <span class="level-card__exp-sep">/</span>
-        <span class="level-card__exp-next">
-          {{ progress.expToNext.toLocaleString('ru-RU') }} до следующего
-        </span>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import type { LevelProgressDto, LevelTier } from '~/types/gamification'
-import ExpProgressBar from '~/components/gamification/ExpProgressBar.vue'
+import { TIER_COLORS }                      from '~/types/gamification'
+import ExpProgressBar                        from '~/components/gamification/ExpProgressBar.vue'
 
 const props = defineProps<{ progress: LevelProgressDto }>()
 
 const TIER_ICONS: Record<LevelTier, string> = {
-  bronze: '🥉',
-  silver: '🥈',
-  gold:   '🥇',
-  neon:   '💎',
+  bronze: 'lucide:shield',
+  silver: 'lucide:award',
+  gold:   'lucide:crown',
+  neon:   'lucide:zap',
 }
 
-const tierIcon = computed(() => TIER_ICONS[props.progress.tier])
+const tierIcon   = computed(() => TIER_ICONS[props.progress.tier])
+const tierColor  = computed(() => TIER_COLORS[props.progress.tier])
 </script>
 
-<style scoped>
-.level-card {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 20px 24px;
-  border-radius: 14px;
-  border: 1px solid;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.03);
-}
+<template>
+  <div
+    class="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-white/[0.03] to-transparent p-5 sm:p-6"
+    :style="`border-color: ${tierColor.border};`"
+  >
+    <!-- Glow orb -->
+    <div
+      class="pointer-events-none absolute -left-10 -top-10 h-48 w-48 rounded-full opacity-12 blur-3xl"
+      aria-hidden="true"
+      :style="`background: ${tierColor.glow};`"
+    />
+    <!-- Shimmer line at top -->
+    <div
+      class="pointer-events-none absolute inset-x-0 top-0 h-px opacity-60"
+      aria-hidden="true"
+      :style="`background: linear-gradient(90deg, transparent, ${tierColor.text}, transparent);`"
+    />
 
-/* Tier-specific border colors */
-.tier-bronze { border-color: rgba(205, 127, 50, 0.3); }
-.tier-silver { border-color: rgba(168, 184, 200, 0.3); }
-.tier-gold   { border-color: rgba(255, 215, 0, 0.3); }
-.tier-neon   { border-color: rgba(34, 197, 94, 0.35); }
+    <div class="relative flex items-center gap-5">
 
-/* Background glow orb */
-.level-card__orb {
-  position: absolute;
-  top: -40px;
-  left: -40px;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  opacity: 0.08;
-  pointer-events: none;
-}
+      <!-- Level badge -->
+      <div class="shrink-0">
+        <div
+          class="relative flex h-[70px] w-[70px] flex-col items-center justify-center rounded-2xl border-2 sm:h-[78px] sm:w-[78px]"
+          :style="`border-color: ${tierColor.border}; box-shadow: 0 0 24px ${tierColor.glow};`"
+        >
+          <!-- Tier icon top -->
+          <UIcon
+            :name="tierIcon"
+            class="mb-0.5 size-4 opacity-80 sm:size-5"
+            :style="`color: ${tierColor.text};`"
+          />
+          <!-- Level number -->
+          <span
+            class="text-2xl font-black leading-none tabular-nums tracking-tighter sm:text-[1.75rem]"
+            :style="`color: ${tierColor.text};`"
+          >
+            {{ progress.level }}
+          </span>
+        </div>
+      </div>
 
-.tier-bronze .level-card__orb { background: radial-gradient(circle, #cd7f32, transparent); }
-.tier-silver .level-card__orb { background: radial-gradient(circle, #a8b8c8, transparent); }
-.tier-gold   .level-card__orb { background: radial-gradient(circle, #ffd700, transparent); }
-.tier-neon   .level-card__orb { background: radial-gradient(circle, #22c55e, transparent); }
+      <!-- Info column -->
+      <div class="min-w-0 flex-1 space-y-2.5">
+        <div class="flex items-baseline justify-between gap-2">
+          <span class="truncate text-base font-bold text-white sm:text-[1.05rem]">
+            {{ progress.levelTitle }}
+          </span>
+          <span
+            class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+            :style="`color: ${tierColor.text}; background: ${tierColor.glow.replace(/[\d.]+\)$/, '0.12)')};`"
+          >
+            {{ progress.tier }}
+          </span>
+        </div>
 
-/* Level icon */
-.level-icon {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  border: 2px solid;
-  flex-shrink: 0;
-}
+        <ExpProgressBar :pct="progress.progressPct" :show-label="true" :animate="true" />
 
-.level-icon--bronze { border-color: rgba(205, 127, 50, 0.5);  box-shadow: 0 0 16px rgba(205, 127, 50, 0.2); }
-.level-icon--silver { border-color: rgba(168, 184, 200, 0.5); box-shadow: 0 0 16px rgba(168, 184, 200, 0.2); }
-.level-icon--gold   { border-color: rgba(255, 215, 0, 0.5);   box-shadow: 0 0 16px rgba(255, 215, 0, 0.25); }
-.level-icon--neon   { border-color: rgba(34, 197, 94, 0.6);   box-shadow: 0 0 20px rgba(34, 197, 94, 0.3); }
-
-.level-icon__symbol {
-  font-size: 1.1rem;
-  line-height: 1;
-}
-
-.level-icon__number {
-  font-size: 1.15rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.03em;
-}
-
-.tier-bronze .level-icon__number { color: #cd7f32; }
-.tier-silver .level-icon__number { color: #c0cdd8; }
-.tier-gold   .level-icon__number { color: #ffd700; }
-.tier-neon   .level-icon__number { color: #22c55e; }
-
-/* Body */
-.level-card__body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-
-.level-card__header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.level-card__title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #fff;
-}
-
-.level-card__lvl-label {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.35);
-}
-
-.level-card__bar {
-  /* ExpProgressBar fills its container */
-}
-
-.level-card__exp-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-}
-
-.level-card__exp-cur {
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.level-card__exp-sep { color: rgba(255, 255, 255, 0.25); }
-
-.level-card__exp-next { color: rgba(255, 255, 255, 0.35); }
-
-/* Mobile */
-@media (max-width: 480px) {
-  .level-card {
-    padding: 16px;
-    gap: 14px;
-  }
-
-  .level-icon {
-    width: 56px;
-    height: 56px;
-  }
-
-  .level-icon__symbol { font-size: 0.9rem; }
-  .level-icon__number { font-size: 1rem; }
-  .level-card__title  { font-size: 0.9rem; }
-}
-</style>
+        <div class="flex items-center gap-1.5 text-xs">
+          <span class="font-semibold text-white/75">
+            {{ progress.exp.toLocaleString('ru-RU') }} EXP
+          </span>
+          <span class="text-white/20">·</span>
+          <span class="text-white/35">
+            ещё {{ progress.expToNext.toLocaleString('ru-RU') }} до следующего
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

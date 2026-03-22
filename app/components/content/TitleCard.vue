@@ -3,7 +3,7 @@
   <NuxtLink
     v-if="content.externalId"
     :to="`/title/${encodeURIComponent(content.externalId)}`"
-    class="group block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500/50"
+    class="group block rounded-[var(--app-radius-lg)] transition-transform motion-reduce:transition-none active:scale-[0.98] motion-reduce:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-green)]/45"
     @pointerenter="onEnter"
     @pointerleave="onLeave"
   >
@@ -23,7 +23,7 @@
   <button
     v-else-if="canTryNavigate"
     type="button"
-    class="group block w-full cursor-pointer rounded-xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500/50 disabled:pointer-events-none disabled:opacity-50"
+    class="group block w-full cursor-pointer rounded-[var(--app-radius-lg)] text-left transition-transform motion-reduce:transition-none active:scale-[0.98] motion-reduce:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-green)]/45 disabled:pointer-events-none disabled:opacity-50"
     :disabled="navigating"
     @pointerenter="onEnter"
     @pointerleave="onLeave"
@@ -38,7 +38,7 @@
   </button>
 
   <!-- Нет ни id, ни названия — действительно нечего открыть -->
-  <div v-else class="block rounded-xl opacity-75">
+  <div v-else class="block rounded-[var(--app-radius-lg)] opacity-75">
     <CardInner :content="content" :no-play="true" />
   </div>
 </template>

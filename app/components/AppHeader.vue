@@ -1,6 +1,6 @@
 <template>
   <header
-    class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+    class="app-header-shell fixed left-0 right-0 top-0 z-50 pt-[var(--app-safe-top)] transition-all duration-300"
     :class="scrolled ? 'header--scrolled' : 'header--top'"
   >
     <!-- ─── Main row (desktop + mobile top bar) ─────────────────────── -->
@@ -47,7 +47,7 @@
             v-model="searchQuery"
             type="text"
             placeholder="Поиск аниме..."
-            class="search-input w-full h-9 pl-9 pr-8 rounded-xl text-[13px] text-white placeholder:text-slate-500 transition-all"
+            class="search-input w-full h-9 pl-9 pr-8 rounded-[var(--app-radius-md)] text-[13px] text-white placeholder:text-slate-500 transition-all"
             :class="{ 'search-input--active': searchFocused }"
             @focus="searchFocused = true"
             @keydown.enter="goSearch"
@@ -181,7 +181,7 @@
     </div>
 
     <!-- ─── Mobile search row (below main bar) ──────────────────────── -->
-    <div ref="mobileSearchWrap" class="sm:hidden px-4 pb-3">
+    <div ref="mobileSearchWrap" class="sm:hidden border-b border-[var(--cinema-border)]/50 px-4 pb-3">
       <div class="relative">
         <UIcon
           name="lucide:search"
@@ -191,7 +191,7 @@
           v-model="searchQuery"
           type="text"
           placeholder="Поиск аниме..."
-          class="search-input w-full h-9 pl-9 pr-8 rounded-xl text-[13px] text-white placeholder:text-slate-500 transition-all"
+          class="search-input w-full h-9 pl-9 pr-8 rounded-[var(--app-radius-md)] text-[13px] text-white placeholder:text-slate-500 transition-all"
           :class="{ 'search-input--active': mobileSearchFocused }"
           @focus="mobileSearchFocused = true"
           @keydown.enter="goSearch"

@@ -4,6 +4,7 @@
     'Segoe UI', sans-serif;
   line-height: 1.6;
   font-weight: 400;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
 /*
@@ -29,6 +30,30 @@ html {
   /* Только корень: не трогаем * — иначе ломается flex/размеры у внутренних скроллов (Nuxt UI). */
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+
+  /*
+   * App shell — согласованы с AppHeader + default layout (safe-area, отступ main).
+   * Высота моб. хедера: h-14 (3.5rem) + ряд поиска pb-3 + h-9 = 104px без safe-area.
+   */
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-header-row-mobile: 3.5rem;
+  --app-header-search-block: calc(0.75rem + 2.25rem);
+  --app-header-offset-mobile: calc(
+    var(--app-safe-top) + var(--app-header-row-mobile) + var(--app-header-search-block)
+  );
+  --app-header-offset-desktop: calc(var(--app-safe-top) + 4rem);
+  --app-bottom-nav-height: calc(3.5rem + var(--app-safe-bottom));
+  --app-section-gap-y: 2rem;
+  --app-card-gap: 0.625rem;
+
+  /* Радиусы UI (карточки, кнопки, инпуты) */
+  --app-radius-sm: 0.5rem;
+  --app-radius-md: 0.75rem;
+  --app-radius-lg: 1rem;
+  --app-radius-xl: 1.25rem;
+  --app-radius-2xl: 1.5rem;
+
   /*
    * Не стилизуем ::-webkit-scrollbar на <html>: в связке с color-scheme: light (светлая тема)
    * WebKit часто переключает скроллбар в «классический» режим и меняет ширину layout viewport —
@@ -270,6 +295,113 @@ html.light body {
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* ── Типографика: крупные заголовки (герой, лендинги) ─────────────────────── */
+.text-display-fluid {
+  font-size: clamp(1.35rem, 4.2vw + 0.6rem, 2.35rem);
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+/* ── Чипы метаданных (герой, карточки) ───────────────────────────────────── */
+.app-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--cinema-border);
+  color: var(--ui-text-muted, #a1a1aa);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+html.light .app-chip {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--ui-text-muted);
+}
+
+.app-chip--live {
+  border-color: var(--accent-green-border);
+  color: var(--accent-green);
+  background: var(--accent-green-softer);
+  gap: 0.35rem;
+}
+
+.app-chip--sky {
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #7dd3fc;
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.app-chip--genre {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  font-size: 0.625rem;
+}
+
+@media (min-width: 640px) {
+  .app-chip--genre {
+    font-size: 0.6875rem;
+  }
+}
+
+.app-chip--rating {
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  color: #facc15;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-size: 0.6875rem;
+}
+
+html.light .app-chip--rating {
+  background: rgba(24, 24, 27, 0.08);
+  color: #ca8a04;
+}
+
+/* ── Skip link (a11y) ─────────────────────────────────────────────────────── */
+.skip-to-content {
+  position: fixed;
+  left: 0.75rem;
+  top: 0;
+  z-index: 9999;
+  padding: 0.5rem 1rem;
+  border-radius: var(--app-radius-md);
+  background: var(--cinema-elevated);
+  color: var(--accent-green);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  border: 1px solid var(--accent-green-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  transform: translateY(-150%);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+.skip-to-content:focus {
+  transform: translateY(calc(var(--app-safe-top) + 0.5rem));
+  opacity: 1;
+  pointer-events: auto;
+  outline: none;
+}
+.skip-to-content:focus-visible {
+  outline: 2px solid var(--accent-green);
+  outline-offset: 2px;
+}
+
+html.light .skip-to-content {
+  background: #fff;
+  color: #15803d;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
 }
 
 /* ── Glow — только акцент (кнопки) ────────────────────────────────────────── */

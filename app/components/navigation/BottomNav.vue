@@ -5,12 +5,12 @@
 <template>
   <nav
     v-if="!hideOnThisRoute"
-    class="fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.06] bg-[var(--cinema-surface)]/95 backdrop-blur-md lg:hidden"
+    class="fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--cinema-border)] bg-[var(--cinema-surface)]/92 backdrop-blur-xl backdrop-saturate-150 shadow-[0_-8px_32px_rgba(0,0,0,0.25)] lg:hidden"
     style="padding-bottom: env(safe-area-inset-bottom, 0px)"
     aria-label="Основная навигация"
   >
     <div
-      class="mx-auto flex h-14 max-w-screen-lg items-stretch justify-between gap-0.5 px-1 pt-1"
+      class="mx-auto flex h-14 max-w-screen-lg items-stretch justify-between gap-1 px-1.5 pt-1"
     >
       <NavItem
         to="/"

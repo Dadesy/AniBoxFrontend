@@ -1,13 +1,20 @@
 <template>
   <div class="site-shell min-h-screen bg-cinema-base">
+    <a
+      href="#main-content"
+      class="skip-to-content"
+    >
+      Перейти к содержимому
+    </a>
+
     <AppHeader />
-    <!-- pt-[104px] accounts for mobile 2-row header (56px + 48px search row) -->
-    <!-- sm:pt-16 is the single-row desktop header (64px) -->
     <main
-      class="pt-[104px] sm:pt-16"
+      id="main-content"
+      tabindex="-1"
+      class="max-sm:pt-[var(--app-header-offset-mobile)] sm:pt-[var(--app-header-offset-desktop)] outline-none focus:outline-none"
       :class="
         mobileBottomNavPad
-          ? 'max-lg:pb-[calc(3.5rem+env(safe-area-inset-bottom,0px)+12px)]'
+          ? 'max-lg:pb-[calc(var(--app-bottom-nav-height)+12px)]'
           : ''
       "
     >
@@ -29,6 +36,11 @@
     <ClientOnly>
       <KodikUnavailableModal />
     </ClientOnly>
+
+    <!-- Cookie / analytics consent notice -->
+    <ClientOnly>
+      <CookieBanner />
+    </ClientOnly>
   </div>
 </template>
 
@@ -39,6 +51,7 @@ import BottomNav from '~/components/navigation/BottomNav.vue';
 import MaintenanceBanner from '~/components/MaintenanceBanner.vue';
 import ReleaseHighlightBanner from '~/components/ReleaseHighlightBanner.vue';
 import KodikUnavailableModal from '~/components/KodikUnavailableModal.vue';
+import CookieBanner from '~/components/CookieBanner.vue';
 import ToastContainer from '~/components/ui/ToastContainer.vue';
 import LevelUpToast from '~/components/gamification/LevelUpToast.vue';
 

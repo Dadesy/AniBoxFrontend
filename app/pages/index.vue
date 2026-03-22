@@ -151,7 +151,7 @@ useHead({
       </div>
 
       <!-- ── Подборки на главной ────────── -->
-      <div class="space-y-8 pb-16">
+      <div class="space-y-[var(--app-section-gap-y)] pb-16">
 
         <!-- Skeleton while loading -->
         <template v-if="metaLoading">
