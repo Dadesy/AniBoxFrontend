@@ -31,9 +31,9 @@ export default defineEventHandler(async (): Promise<ChangelogApiResponse> => {
   try {
     const md = await readChangelogMarkdown()
     if (!md) {
-      return { entries: [], freshRelease: null }
+      return { entries: [], planned: null, freshRelease: null }
     }
-    const entries = parseChangelog(md)
+    const { entries, planned } = parseChangelog(md)
     const fresh = pickFreshRelease(entries)
     const freshRelease = fresh
       ? {
@@ -42,8 +42,8 @@ export default defineEventHandler(async (): Promise<ChangelogApiResponse> => {
           date: fresh.date,
         }
       : null
-    return { entries, freshRelease }
+    return { entries, planned, freshRelease }
   } catch {
-    return { entries: [], freshRelease: null }
+    return { entries: [], planned: null, freshRelease: null }
   }
 })

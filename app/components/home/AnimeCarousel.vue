@@ -60,7 +60,7 @@ onMounted(() => {
 })
 
 const SKELETON_COUNT = 8
-const cardWidth = computed(() => props.cardSize === 'sm' ? 'w-[130px]' : 'w-[150px]')
+const cardWidth = computed(() => props.cardSize === 'sm' ? 'w-[138px]' : 'w-[162px]')
 </script>
 
 <template>

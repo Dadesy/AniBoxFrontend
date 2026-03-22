@@ -24,6 +24,11 @@ export interface ChangelogFreshRelease {
 
 export interface ChangelogApiResponse {
   entries: ChangelogRelease[]
+  /**
+   * Блок «Запланировано» из конца CHANGELOG.md — не версия и не участвует в баннере релиза.
+   * Секции и пункты как у релизов (### и -).
+   */
+  planned: ChangelogSection[] | null
   /** Первый в списке релиз с датой: показывать баннер 3 суток с 00:00 этой даты; не Unreleased */
   freshRelease: ChangelogFreshRelease | null
 }

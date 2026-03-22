@@ -40,7 +40,6 @@
       ref="imgRef"
       :src="displaySrc"
       :alt="alt"
-      referrerpolicy="no-referrer"
       :loading="priority ? 'eager' : 'lazy'"
       :fetchpriority="priority ? 'high' : undefined"
       :decoding="priority ? 'sync' : 'async'"
@@ -114,8 +113,9 @@ function onLoad() {
 
 function onError() {
   const raw = (props.src ?? '').trim()
-  if (loadAttempt.value === 0 && raw) {
-    loadAttempt.value = 1
+  // Несколько попыток (cache-bust) — CDN / TLS иногда отваливаются разово
+  if (raw && loadAttempt.value < 3) {
+    loadAttempt.value += 1
     phase.value = 'loading'
     return
   }

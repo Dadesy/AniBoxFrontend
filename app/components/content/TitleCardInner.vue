@@ -102,6 +102,7 @@ import AppImage from '../common/AppImage.vue'
 import AppVideoPreview from '../common/AppVideoPreview.vue'
 import type { CatalogCard } from '~/types/content'
 import { KIND_LABELS } from '~/types/metadata'
+import { upgradeAnimePosterUrl } from '~/utils/poster-url-upgrade'
 
 const props = defineProps<{
   content:       CatalogCard
@@ -125,7 +126,12 @@ function pickNonEmptyString(...values: unknown[]): string | null {
 
 const displayTitle = computed(() => pickNonEmptyString(props.content.titleRu, props.content.title) ?? 'Без названия')
 
-const posterSrc = computed(() => pickNonEmptyString(props.content.posterUrl) ?? null)
+const posterSrc = computed(() => {
+  const raw = pickNonEmptyString(props.content.posterUrl)
+  if (!raw) return null
+  const up = upgradeAnimePosterUrl(raw)
+  return up || null
+})
 
 const scoreValue = computed<number | null>(() => {
   const raw = props.content.score

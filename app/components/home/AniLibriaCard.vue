@@ -28,7 +28,7 @@ function handleClick() {
 
 <template>
   <div
-    class="group relative cursor-pointer select-none flex-shrink-0 w-[140px] sm:w-[155px]"
+    class="group relative cursor-pointer select-none flex-shrink-0 w-[148px] sm:w-[162px]"
     @click="handleClick"
   >
     <AppImage

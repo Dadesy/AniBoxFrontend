@@ -1,5 +1,27 @@
 <script setup lang="ts">
-import type { ChangelogApiResponse } from '~/types/changelog'
+import type {
+  ChangelogApiResponse,
+  ChangelogRelease,
+  ChangelogSection,
+} from '~/types/changelog'
+
+/** Порядок секций внутри карточки релиза */
+const SECTION_ORDER = ['Реализовано', 'Изменено', 'Исправлено']
+
+function sortReleaseSections(sections: ChangelogSection[]): ChangelogSection[] {
+  return [...sections].sort((a, b) => {
+    const ia = SECTION_ORDER.indexOf(a.title)
+    const ib = SECTION_ORDER.indexOf(b.title)
+    const va = ia === -1 ? 999 : ia
+    const vb = ib === -1 ? 999 : ib
+    if (va !== vb) return va - vb
+    return a.title.localeCompare(b.title, 'ru')
+  })
+}
+
+function withSortedSections(rel: ChangelogRelease): ChangelogRelease {
+  return { ...rel, sections: sortReleaseSections(rel.sections) }
+}
 
 const { pageTitle } = useSiteBranding()
 const cfg = useRuntimeConfig()
@@ -10,7 +32,7 @@ usePageCanonical('/updates')
 
 const updatesTitle = computed(() => pageTitle('Обновления'))
 const updatesDesc =
-  'Журнал изменений: новые функции и исправления по версиям.'
+  'Узнайте, что нового на сайте: удобство, каталог, просмотр и мелкие исправления — коротко и по делу.'
 
 useSeoMeta({
   title: updatesTitle,
@@ -32,7 +54,14 @@ const { data, pending, error } = await useFetch<ChangelogApiResponse>(
 )
 
 const entries = computed(() => data.value?.entries ?? [])
-const isEmpty = computed(() => !pending.value && entries.value.length === 0)
+const entriesSorted = computed(() => entries.value.map(withSortedSections))
+const plannedSections = computed(() => data.value?.planned ?? null)
+const isEmpty = computed(
+  () =>
+    !pending.value &&
+    entries.value.length === 0 &&
+    !(plannedSections.value && plannedSections.value.length > 0),
+)
 </script>
 
 <template>
@@ -41,14 +70,17 @@ const isEmpty = computed(() => !pending.value && entries.value.length === 0)
       <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
         Обновления
       </h1>
-      <p class="mt-2 max-w-xl text-sm leading-relaxed text-slate-500">
-        Краткий список того, что менялось на сайте. Он собирается из файла
-        <code class="rounded bg-white/10 px-1.5 py-0.5 text-xs text-green-300">
-          CHANGELOG.md
-        </code>
-        в корне приложения: добавьте блок версии и пункты — после деплоя они появятся здесь
-        (в продакшене нужна пересборка).
-      </p>
+      <div class="mt-3 max-w-xl space-y-2 text-sm leading-relaxed text-slate-400">
+        <p>
+          Здесь мы собираем <span class="font-medium text-slate-300">главные изменения</span>
+          — что стало удобнее, что добавили и что поправили. Без лишнего технического жаргона:
+          раз в какое-то время заглядывайте, если интересно, чем сайт живёт.
+        </p>
+        <p class="text-xs text-slate-500">
+          После крупного обновления несколько дней может показываться короткое напоминание
+          сверху страницы — чтобы не пропустить новости.
+        </p>
+      </div>
     </header>
 
     <div
@@ -85,11 +117,8 @@ const isEmpty = computed(() => !pending.value && entries.value.length === 0)
         class="mx-auto mb-4 size-12 text-slate-600"
       />
       <p class="text-slate-400">
-        Пока нет записей. Добавьте в
-        <code class="text-green-400">CHANGELOG.md</code>
-        заголовок вида
-        <code class="text-green-400">## [ [2.75.1](URL) ] - 22.01.2026</code>
-        и список изменений.
+        Пока нечего показать — список обновлений появится, как только мы его опубликуем.
+        Загляните позже.
       </p>
     </div>
 
@@ -98,7 +127,7 @@ const isEmpty = computed(() => !pending.value && entries.value.length === 0)
       class="space-y-10"
     >
       <li
-        v-for="rel in entries"
+        v-for="rel in entriesSorted"
         :key="(rel.versionUrl ?? '') + rel.version + (rel.date ?? '')"
         class="rounded-2xl border border-white/[0.06] bg-cinema-card/40 p-6 sm:p-8"
       >
@@ -148,5 +177,47 @@ const isEmpty = computed(() => !pending.value && entries.value.length === 0)
         </div>
       </li>
     </ol>
+
+    <section
+      v-if="plannedSections && plannedSections.length > 0"
+      class="mt-12 rounded-2xl border border-dashed border-violet-500/25 bg-violet-950/20 p-6 sm:p-8"
+      aria-labelledby="planned-heading"
+    >
+      <div class="mb-4 border-b border-violet-500/15 pb-4">
+        <h2
+          id="planned-heading"
+          class="text-lg font-bold text-violet-200"
+        >
+          Запланировано
+        </h2>
+        <p class="mt-1 text-xs leading-relaxed text-violet-300/70">
+          Это не привязано к номеру версии и дате релиза — просто идеи и направления, над которыми работаем.
+        </p>
+      </div>
+      <div class="space-y-6">
+        <div
+          v-for="sec in plannedSections"
+          :key="sec.title"
+        >
+          <h3
+            v-if="plannedSections.length > 1 || sec.title !== 'Запланировано'"
+            class="mb-3 text-xs font-bold uppercase tracking-wider text-violet-400/90"
+          >
+            {{ sec.title }}
+          </h3>
+          <ul
+            class="list-inside list-disc space-y-2 text-sm leading-relaxed text-violet-100/90 marker:text-violet-400/80"
+          >
+            <li
+              v-for="(item, idx) in sec.items"
+              :key="idx"
+              class="pl-1"
+            >
+              {{ item }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
   </div>
 </template>

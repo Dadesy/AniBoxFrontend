@@ -8,6 +8,11 @@
  * - ## [1.0.0] - 2026-01-22
  * - ## 1.0.0 - 22.01.2026
  *
+ * Отдельно от релизов (не версия, без даты, вне баннера):
+ * - ## Запланировано
+ *
+ * Секции релиза: ### Реализовано | Изменено | Исправлено (и любые другие заголовки).
+ *
  * Дата: ДД.ММ.ГГГГ или ГГГГ-ММ-ДД
  */
 
@@ -15,6 +20,9 @@ import type { ChangelogRelease, ChangelogSection } from '../../types/changelog'
 
 const SECTION_RE = /^###\s+(.+)$/
 const ITEM_RE = /^[-*]\s+(.+)$/
+
+/** Заголовок блока планов — не парсится как релиз */
+const PLANNED_HEADING_RE = /^Запланировано$/i
 
 /** Вложенные скобки: [ [версия](url) ] */
 const HEADING_NESTED_LINK = /^\[\s*\[([^\]]+)\]\(([^)]+)\)\s*\]\s*(?:-\s*(.+))?$/
@@ -142,17 +150,32 @@ function parseReleaseHeading(body: string): ParsedHeading {
   }
 }
 
-export function parseChangelog(md: string): ChangelogRelease[] {
+export interface ChangelogParseResult {
+  entries: ChangelogRelease[]
+  /** Содержимое ## Запланировано — не входит в entries и не влияет на баннер */
+  planned: ChangelogSection[] | null
+}
+
+export function parseChangelog(md: string): ChangelogParseResult {
   const lines = md.replace(/\r\n/g, '\n').split('\n')
   const releases: ChangelogRelease[] = []
 
+  let mode: 'release' | 'planned' = 'release'
   let current: ChangelogRelease | null = null
   let section: ChangelogSection | null = null
+
+  let plannedSections: ChangelogSection[] = []
+  let plannedSection: ChangelogSection | null = null
 
   function ensureSection(title: string) {
     if (!current) return
     section = { title, items: [] }
     current.sections.push(section)
+  }
+
+  function ensurePlannedSection(title: string) {
+    plannedSection = { title, items: [] }
+    plannedSections.push(plannedSection)
   }
 
   for (const raw of lines) {
@@ -161,6 +184,17 @@ export function parseChangelog(md: string): ChangelogRelease[] {
 
     if (trimmed.startsWith('## ') && !trimmed.startsWith('###')) {
       const body = trimmed.slice(3).trim()
+
+      if (PLANNED_HEADING_RE.test(body)) {
+        mode = 'planned'
+        current = null
+        section = null
+        plannedSections = []
+        plannedSection = null
+        continue
+      }
+
+      mode = 'release'
       const parsed = parseReleaseHeading(body)
       current = {
         version: parsed.version,
@@ -174,6 +208,21 @@ export function parseChangelog(md: string): ChangelogRelease[] {
       continue
     }
 
+    if (mode === 'planned') {
+      const sec = trimmed.match(SECTION_RE)
+      if (sec) {
+        ensurePlannedSection(sec[1]!.trim())
+        continue
+      }
+      const item = trimmed.match(ITEM_RE)
+      if (item) {
+        if (!plannedSection) ensurePlannedSection('Запланировано')
+        plannedSection!.items.push(item[1]!.trim())
+        continue
+      }
+      continue
+    }
+
     const sec = trimmed.match(SECTION_RE)
     if (sec && current) {
       ensureSection(sec[1]!.trim())
@@ -182,13 +231,16 @@ export function parseChangelog(md: string): ChangelogRelease[] {
 
     const item = trimmed.match(ITEM_RE)
     if (item && current) {
-      if (!section) ensureSection('Изменения')
+      if (!section) ensureSection('Реализовано')
       if (section) section.items.push(item[1]!.trim())
       continue
     }
   }
 
-  return releases
+  return {
+    entries: releases,
+    planned: plannedSections.length > 0 ? plannedSections : null,
+  }
 }
 
 /**

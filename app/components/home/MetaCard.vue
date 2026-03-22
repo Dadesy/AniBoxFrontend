@@ -7,8 +7,9 @@ const props = defineProps<{
   size?: 'sm' | 'md'
 }>()
 
+/** Чуть шире карточка → больше пикселей под постер при том же соотношении 2:3 */
 const widthClass = computed(() =>
-  props.size === 'sm' ? 'w-[130px]' : 'w-[150px]',
+  props.size === 'sm' ? 'w-[138px]' : 'w-[162px]',
 )
 </script>
 

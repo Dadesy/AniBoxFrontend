@@ -1,3 +1,5 @@
+import { upgradeAnimePosterUrl } from './poster-url-upgrade'
+
 const ANILIBRIA_ORIGIN = 'https://anilibria.top'
 
 /** AniLibria API returns site-relative poster paths; browsers would load them from your origin without this. */
@@ -6,10 +8,10 @@ export function absolutizeAnilibriaApiPosterUrl(
 ): string {
   const u = (raw ?? '').trim()
   if (!u) return ''
-  if (/^https?:\/\//i.test(u)) return u
-  if (u.startsWith('//')) return `https:${u}`
-  if (u.startsWith('/')) return `${ANILIBRIA_ORIGIN}${u}`
-  return u
+  if (/^https?:\/\//i.test(u)) return upgradeAnimePosterUrl(u)
+  if (u.startsWith('//')) return upgradeAnimePosterUrl(`https:${u}`)
+  if (u.startsWith('/')) return upgradeAnimePosterUrl(`${ANILIBRIA_ORIGIN}${u}`)
+  return upgradeAnimePosterUrl(u)
 }
 
 /** Same priority as backend: best-quality AniLibria poster field first. */

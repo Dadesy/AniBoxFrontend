@@ -42,7 +42,7 @@ function sectionLink(sectionId: string): string {
     popular:       '/catalog',
     season:        '/catalog',
     announcements: '/catalog',
-    fresh:         '/catalog',
+    fresh:         '/catalog?status=ongoing&order=aired_on',
     top_rated:     '/catalog',
   }
   return map[sectionId] ?? '/catalog'
