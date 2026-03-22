@@ -42,7 +42,7 @@ const SKELETON_COUNT = 8
       <div class="flex items-center gap-2.5">
         <h2 class="text-[15px] font-semibold text-zinc-100 tracking-tight">Свежие релизы</h2>
         <span class="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/8 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-400">
-          AniLibria
+          Обновления
         </span>
       </div>
 
@@ -63,14 +63,12 @@ const SKELETON_COUNT = 8
             <UIcon name="lucide:chevron-right" class="h-4 w-4" />
           </button>
         </template>
-        <a
-          href="https://anilibria.top"
-          target="_blank"
-          rel="noopener noreferrer"
+        <NuxtLink
+          to="/catalog"
           class="text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors"
         >
-          anilibria.top ↗
-        </a>
+          В каталог →
+        </NuxtLink>
       </div>
     </div>
 

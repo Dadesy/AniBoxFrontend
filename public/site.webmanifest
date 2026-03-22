@@ -1,7 +1,7 @@
 {
-  "name": "AniBox — Аниме онлайн",
-  "short_name": "AniBox",
-  "description": "Смотрите аниме онлайн бесплатно — онгоинги, популярное, новинки сезона",
+  "name": "AnimeScope — Аниме онлайн",
+  "short_name": "AnimeScope",
+  "description": "Смотреть аниме онлайн",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",

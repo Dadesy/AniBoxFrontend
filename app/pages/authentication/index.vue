@@ -3,7 +3,7 @@
     <!-- Заголовок -->
     <div class="space-y-2 text-center">
       <h1 class="text-3xl font-semibold tracking-tight">
-        {{ step === 'email' ? 'Вход в AniBox' : 'Введите код' }}
+        {{ step === 'email' ? `Вход в ${siteName}` : 'Введите код' }}
       </h1>
       <p class="text-base text-muted">
         {{
@@ -52,6 +52,8 @@ definePageMeta({
 });
 
 type Step = 'email' | 'code';
+
+const { siteName } = useSiteBranding();
 
 const step = ref<Step>('email');
 const pendingEmail = ref('');

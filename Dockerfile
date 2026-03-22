@@ -55,6 +55,13 @@ ENV NODE_ENV=production
 # Nuxt output — standalone-сервер, не нужен весь node_modules
 COPY --from=builder /app/.output ./.output
 
+# Журнал обновлений для GET /api/changelog (чтение в рантайме, не ?raw)
+COPY --from=builder /app/CHANGELOG.md ./CHANGELOG.md
+
+# @nuxt/icon + icon.serverBundle.collections: сервер подгружает коллекцию через
+# require('@iconify-json/lucide/icons.json') в рантайме — файла нет внутри .output.
+COPY --from=builder /app/node_modules/@iconify-json/lucide ./node_modules/@iconify-json/lucide
+
 EXPOSE 3000
 
 CMD ["node", ".output/server/index.mjs"]

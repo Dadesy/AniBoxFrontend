@@ -14,6 +14,17 @@ export interface LibraryEntry {
   updatedAt: string
 }
 
+/** Вкладки быстрых фильтров на `/library` и в профиле */
+export const LIBRARY_SECTION_TAB_KEYS = [
+  'watching',
+  'planned',
+  'completed',
+  'liked',
+  'dropped',
+] as const
+
+export type LibrarySectionTabKey = (typeof LIBRARY_SECTION_TAB_KEYS)[number]
+
 export interface GroupedLibrary {
   planned:   LibraryEntry[]
   watching:  LibraryEntry[]

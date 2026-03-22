@@ -1,10 +1,11 @@
 <script setup lang="ts">
 /**
- * Одноразово за сессию — если Kodik недоступен.
+ * Одноразово за сессию — если плеер недоступен (по статусу с сервера).
  */
-const STORAGE_KEY = 'anibox-kodik-unavailable-modal-dismissed'
+const STORAGE_KEY = 'site-player-unavailable-modal-dismissed'
 
 const { isKodikDown } = useKodikStatus()
+const { bootOverlayRemoved } = useAppLoader()
 
 const open = ref(false)
 
@@ -37,6 +38,11 @@ function clearDismissed(): void {
 
 function syncOpen() {
   if (!import.meta.client) return
+  // Пока boot-лоадер на экране (или уходит Transition) — не показывать поверх него
+  if (!bootOverlayRemoved.value) {
+    open.value = false
+    return
+  }
   if (!isKodikDown.value) {
     clearDismissed()
     open.value = false
@@ -45,7 +51,11 @@ function syncOpen() {
   open.value = !isDismissed()
 }
 
-watch(() => isKodikDown.value, syncOpen, { flush: 'post' })
+watch(
+  () => [isKodikDown.value, bootOverlayRemoved.value] as const,
+  () => syncOpen(),
+  { flush: 'post' },
+)
 
 onMounted(() => {
   syncOpen()
@@ -73,7 +83,7 @@ function onConfirm() {
     <Transition name="kodik-modal">
       <div
         v-if="open"
-        class="kodik-modal-root fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6"
+        class="kodik-modal-root fixed inset-0 z-[2147483645] flex items-center justify-center p-4 sm:p-6"
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="kodik-modal-title"
@@ -103,8 +113,8 @@ function onConfirm() {
                   Плеер временно недоступен
                 </h2>
                 <p id="kodik-modal-desc" class="kodik-modal-desc mt-2 text-sm leading-relaxed">
-                  Сервис Kodik сейчас не отвечает: просмотр эпизодов может не открываться или работать с
-                  ошибками. Каталог, списки и профиль доступны. Статус проверяется автоматически.
+                  Плеер сейчас может работать нестабильно: эпизоды иногда не открываются или воспроизводятся с
+                  ошибками. Каталог, списки и профиль доступны как обычно. Мы следим за состоянием сервиса.
                 </p>
               </div>
             </div>

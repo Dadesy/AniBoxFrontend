@@ -31,8 +31,8 @@
               :src="item.posterUrl"
               :alt="item.title"
               loading="lazy"
+              referrerpolicy="no-referrer"
               class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              @error="(e) => ((e.target as HTMLImageElement).style.display = 'none')"
             />
           </div>
           <!-- Fill empty slots -->

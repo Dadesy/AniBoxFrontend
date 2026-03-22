@@ -76,15 +76,20 @@
           <p class="text-slate-400">{{ error }}</p>
         </div>
 
-        <!-- Skeleton -->
+        <!-- Skeleton grid — aspect-[2/3] matches real cards exactly → no layout shift -->
         <div
           v-else-if="loading"
           class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
         >
-          <div v-for="i in 28" :key="i" class="space-y-2">
-            <div class="aspect-[2/3] w-full rounded-xl skeleton-shine" />
-            <div class="h-3 w-3/4 rounded skeleton-shine" />
-            <div class="h-2.5 w-1/2 rounded skeleton-shine" />
+          <div
+            v-for="i in 28"
+            :key="i"
+            class="overflow-hidden rounded-xl"
+          >
+            <div
+              class="aspect-[2/3] w-full bg-cinema-card skeleton-shine"
+              :style="{ animationDelay: `${Math.min((i - 1) * 25, 350)}ms` }"
+            />
           </div>
         </div>
 
@@ -93,10 +98,15 @@
           v-else-if="items.length"
           class="animate-fade-in grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
         >
+          <!--
+            First 6 cards are above the fold on most screens.
+            priority=true → fetchpriority="high" + loading="eager" for LCP.
+          -->
           <TitleCard
-            v-for="item in items"
+            v-for="(item, idx) in items"
             :key="item.externalId || item.id || item.title"
             :content="item"
+            :priority="idx < 6"
           />
         </div>
 
@@ -144,10 +154,40 @@ import FilterDrawer from '~/components/content/FilterDrawer.vue'
 import TitleCard from '~/components/content/TitleCard.vue'
 import type { CatalogFilters } from '~/types/content'
 
+const { pageTitle } = useSiteBranding()
+const cfg = useRuntimeConfig()
+const siteUrl = cfg.public.siteUrl as string
+const ogImage = `${siteUrl}/og-image.png`
+const catalogDesc =
+  'Каталог аниме онлайн: фильтры по жанру, году, студии и статусу. Онгоинги, фильмы и новинки сезона.'
+
+usePageCanonical('/catalog')
+
+const catalogTitle = computed(() => pageTitle('Каталог'))
+
+useSeoMeta({
+  title: catalogTitle,
+  description: catalogDesc,
+  ogTitle: catalogTitle,
+  ogDescription: catalogDesc,
+  ogUrl: `${siteUrl}/catalog`,
+  ogImage,
+  twitterCard: 'summary_large_image',
+  twitterTitle: catalogTitle,
+  twitterDescription: catalogDesc,
+  twitterImage: ogImage,
+  robots: 'index, follow, max-image-preview:large',
+})
+
 const {
   items, hasMore, loading, loadingMore, error,
   filters, filterOptions,
-  fetchCatalog, loadMore, applyFilters, resetFilters, fetchFilterOptions,
+  fetchCatalog,
+  loadMore,
+  applyFilters,
+  resetFilters,
+  fetchFilterOptions,
+  hydrateFiltersFromRoute,
 } = useCatalog()
 
 const drawerOpen = ref(false)
@@ -255,6 +295,7 @@ function removeChip(chip: ActiveChip): void {
 // ── Init ──────────────────────────────────────────────────────────────────
 
 async function init(): Promise<void> {
+  hydrateFiltersFromRoute()
   await Promise.all([fetchCatalog(), fetchFilterOptions()])
 }
 
@@ -266,5 +307,4 @@ if (import.meta.server) {
   })
 }
 
-useHead({ title: 'Каталог — AniBox' })
 </script>

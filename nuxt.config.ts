@@ -54,10 +54,14 @@ const frameSrcWithMetrikaWatch = [
   'https://kodik.info',
   'https://kodik.cc',
   'https://kodik.biz',
+  'https://www.youtube-nocookie.com', // muted trailer previews on card hover
   ...yandexMetrikaOrigins,
 ].join(' ');
 /** Без 'none': вебвизор Метрики грузит iframe с mc.yandex.ru */
-const frameSrcWithMetrikaDefault = [...yandexMetrikaOrigins].join(' ');
+const frameSrcWithMetrikaDefault = [
+  'https://www.youtube-nocookie.com', // muted trailer previews on card hover
+  ...yandexMetrikaOrigins,
+].join(' ');
 
 const ymIdForHead = process.env.NUXT_PUBLIC_YANDEX_METRIKA_ID ?? '108180420';
 const yandexMetrikaHeadScripts =
@@ -100,8 +104,12 @@ export default defineNuxtConfig({
     '~/assets/css/main.css',
   ],
   compatibilityDate: '2025-07-15',
+
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: ['animejs'],
+    },
   },
   hooks: {
     'pages:extend'(pages) {
@@ -122,7 +130,9 @@ export default defineNuxtConfig({
     apiUrlInternal: process.env.NUXT_API_URL_INTERNAL ?? process.env.NUXT_PUBLIC_API_URL ?? 'http://localhost:8080/api',
     public: {
       apiUrl: process.env.NUXT_PUBLIC_API_URL ?? 'http://localhost:8080/api',
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'https://ani-box.up.railway.app',
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'https://example.com',
+      /** Публичное имя бренда (логотип, title, OG) */
+      siteName: process.env.NUXT_PUBLIC_SITE_NAME ?? 'AnimeScope',
       /** Пустая строка / 0 — отключить счётчик */
       yandexMetrikaId: process.env.NUXT_PUBLIC_YANDEX_METRIKA_ID ?? '108180420',
     },
@@ -147,15 +157,24 @@ export default defineNuxtConfig({
         { name: 'theme-color', content: '#f4f4f5', media: '(prefers-color-scheme: light)' },
         { name: 'color-scheme', content: 'dark light' },
         { name: 'format-detection', content: 'telephone=no' },
+        { name: 'referrer', content: 'strict-origin-when-cross-origin' },
+        {
+          name: 'googlebot',
+          content: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
+        },
         // Default OG tags (overridden per-page via useSeoMeta)
         { property: 'og:type', content: 'website' },
         { property: 'og:locale', content: 'ru_RU' },
+        { property: 'og:locale:alternate', content: 'en_US' },
         { name: 'twitter:card', content: 'summary_large_image' },
         // Mobile web app
         { name: 'mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
-        { name: 'apple-mobile-web-app-title', content: 'AniBox' },
+        {
+          name: 'apple-mobile-web-app-title',
+          content: process.env.NUXT_PUBLIC_SITE_NAME ?? 'AnimeScope',
+        },
         // Yandex verification (add your token after registration)
         // { name: 'yandex-verification', content: 'YOUR_TOKEN' },
       ],

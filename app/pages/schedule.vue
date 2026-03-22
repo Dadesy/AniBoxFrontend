@@ -12,6 +12,30 @@ import ScheduleFiltersPanel from '~/components/schedule/ScheduleFiltersPanel.vue
 import ScheduleSkeleton from '~/components/schedule/ScheduleSkeleton.vue'
 import { formatDayMonthRu } from '~/utils/schedule-dates'
 
+const { pageTitle } = useSiteBranding()
+const cfg = useRuntimeConfig()
+const siteUrl = cfg.public.siteUrl as string
+const ogImage = `${siteUrl}/og-image.png`
+const scheduleDesc =
+  'Календарь и расписание выхода новых серий аниме с учётом вашей таймзоны.'
+
+usePageCanonical('/schedule')
+
+const scheduleTitle = computed(() => pageTitle('Расписание выхода аниме'))
+
+useSeoMeta({
+  title: scheduleTitle,
+  description: scheduleDesc,
+  ogTitle: scheduleTitle,
+  ogDescription: scheduleDesc,
+  ogUrl: `${siteUrl}/schedule`,
+  ogImage,
+  twitterCard: 'summary_large_image',
+  twitterTitle: scheduleTitle,
+  twitterDescription: scheduleDesc,
+  twitterImage: ogImage,
+  robots: 'index, follow, max-image-preview:large',
+})
 const { page, releases, meta, loading, error, refresh } = useSchedule()
 const filters = useScheduleFilters()
 
@@ -28,10 +52,6 @@ const {
   goNext,
   selectDateKey,
 } = useCalendarNavigation(tz, todayLocal)
-
-const sourceLabel = computed(() =>
-  meta.value.source === 'yanitv' ? 'Yani.tv' : 'Shikimori',
-)
 
 const filteredReleases = computed(() =>
   filters.filtered(releases.value, tz.value),
@@ -130,16 +150,6 @@ const dayTitle = computed(() => {
   return formatDayMonthRu(k, tz.value)
 })
 
-useHead({
-  title: 'Расписание выхода аниме — AniBox',
-  meta: [
-    {
-      name: 'description',
-      content:
-        'Календарь и расписание выхода новых серий аниме с учётом вашей таймзоны',
-    },
-  ],
-})
 </script>
 
 <template>
@@ -159,7 +169,6 @@ useHead({
       <ScheduleHeader
         v-model:view-mode="viewMode"
         :timezone="meta.timezone"
-        :source-label="sourceLabel"
         :filters-open="filtersOpen"
         @update:filters-open="filtersOpen = $event"
         @today="goToday"
@@ -331,7 +340,7 @@ useHead({
                 Недавно по дате релиза
               </h3>
               <p class="mt-1 text-[11px] leading-relaxed text-zinc-600">
-                Эпизоды с датой в прошлом (по данным расписания). Не все сервисы отдают прошлые слоты.
+                Эпизоды с датой в прошлом по текущему расписанию. Список может быть неполным.
               </p>
               <ul class="mt-3 space-y-2">
                 <li
@@ -361,7 +370,7 @@ useHead({
               class="rounded-2xl border border-dashed border-white/10 p-6 text-center"
             >
               <p class="text-sm text-zinc-500">
-                Расписание пустое для текущих фильтров или источник временно недоступен.
+                Сейчас нет записей: попробуйте изменить фильтры или обновить страницу позже.
               </p>
               <UButton
                 class="mt-4"

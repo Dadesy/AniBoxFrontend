@@ -1,6 +1,7 @@
 import type { AnimePreferences } from '~/types/content'
 
-const STORAGE_PREFIX = 'anibox:anime:preferences:'
+/** Префикс без имени бренда — настройки переживают смену названия сайта */
+const STORAGE_PREFIX = 'app:anime:preferences:'
 
 function getStorageKey(externalId: string): string {
   return `${STORAGE_PREFIX}${externalId}`

@@ -7,15 +7,16 @@ services:
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
       NUXT_API_URL_INTERNAL: http://host.docker.internal:8080/api
+    # Именованный volume перекрывает node_modules из образа — при первом запуске
+    # том пустой, без install нет @iconify-json/lucide и падает Nuxt Icon (SSR).
     command:
-      - npm
-      - run
-      - dev
-      - --
-      - --host
-      - 0.0.0.0
-      - --port
-      - "3000"
+      - sh
+      - -c
+      - |
+        if [ ! -f node_modules/@iconify-json/lucide/icons.json ]; then
+          npm install
+        fi
+        exec npm run dev -- --host 0.0.0.0 --port 3000
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:

@@ -75,6 +75,15 @@
 import type { ContentCard } from '~/types/content';
 import TitleCard from '~/components/content/TitleCard.vue';
 
+const { pageTitle } = useSiteBranding();
+const cfg = useRuntimeConfig();
+const siteUrl = cfg.public.siteUrl as string;
+const ogImage = `${siteUrl}/og-image.png`;
+const searchDesc =
+  'Поиск аниме по названию в каталоге: сериалы, фильмы и спешлы.';
+
+usePageCanonical('/search');
+
 const route    = useRoute();
 const apiUrl   = useApiUrl();
 const inputRef = ref<HTMLInputElement | null>(null);
@@ -124,5 +133,22 @@ if (query.value.length >= 2) onMounted(() => doSearch(true));
 // Focus input on mount
 onMounted(() => nextTick(() => inputRef.value?.focus()));
 
-useHead({ title: computed(() => query.value ? `Поиск: ${query.value} — AniBox` : 'Поиск — AniBox') });
+const searchTitle = computed(() =>
+  query.value ? pageTitle(`Поиск: ${query.value}`) : pageTitle('Поиск'),
+);
+
+useSeoMeta({
+  title: searchTitle,
+  description: searchDesc,
+  ogTitle: searchTitle,
+  ogDescription: searchDesc,
+  ogUrl: `${siteUrl}/search`,
+  ogImage,
+  twitterCard: 'summary_large_image',
+  twitterTitle: searchTitle,
+  twitterDescription: searchDesc,
+  twitterImage: ogImage,
+  robots: 'index, follow, max-image-preview:large',
+});
+
 </script>

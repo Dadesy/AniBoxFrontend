@@ -1,20 +1,22 @@
 <script setup lang="ts">
-import type { EpisodeProgress } from '~/types/content'
 import type { NormalizedAnimeCard } from '~/types/metadata'
 import { useHomeData } from '~/composables/useMetadata'
 import HeroSlider from '~/components/home/HeroSlider.vue'
 import AnimeCarousel from '~/components/home/AnimeCarousel.vue'
-import GenreRow from '~/components/home/GenreRow.vue'
-import ContinueWatchingBlock from '~/components/content/ContinueWatchingBlock.vue'
+import ContinueWatchingRow from '~/components/home/ContinueWatchingRow.vue'
 import CollectionRow from '~/components/home/CollectionRow.vue'
 import NewsCard from '~/components/content/NewsCard.vue'
 
 // ── Auth ─────────────────────────────────────────────────────────────────
 const { isAuthenticated } = useAuth()
+const { items: continueItems, pending: continuePending } = useContinueWatching({
+  limit: 16,
+})
 const { collections } = useCollections()
 const { news } = useNews(10)
 
-// ── Home data — all sections including AniLibria fresh (from backend) ────
+// ── Главная: подборки с API сайта ────
+const { siteName } = useSiteBranding()
 const { hero, sections, loading: metaLoading } = useHomeData()
 
 // ── Hero slider: hero card + up to 4 high-rated ongoings ────────────────
@@ -33,16 +35,6 @@ const heroItems = computed<NormalizedAnimeCard[]>(() => {
   return items
 })
 
-// ── Continue watching ─────────────────────────────────────────────────
-const continueItems = ref<EpisodeProgress[]>([])
-onMounted(async () => {
-  if (!isAuthenticated.value) return
-  try {
-    const { loadContinueWatching } = useWatchProgress()
-    continueItems.value = await loadContinueWatching()
-  } catch { /* silent */ }
-})
-
 // ── Section metadata ─────────────────────────────────────────────────────
 function sectionLink(sectionId: string): string {
   const map: Record<string, string> = {
@@ -56,33 +48,31 @@ function sectionLink(sectionId: string): string {
   return map[sectionId] ?? '/catalog'
 }
 
-/** Source badges shown in carousel headers for third-party sections */
-function sectionBadge(sectionId: string): string | undefined {
-  if (sectionId === 'fresh')     return 'AniLibria'
-  if (sectionId === 'top_rated') return 'Yani.tv'
-  return undefined
-}
-
 const SKELETON_SECTIONS = ['Свежие релизы', 'Сейчас выходит', 'Топ по рейтингу', 'Популярное', 'Топ сезона', 'Скоро выйдет']
 
 // ── SEO ──────────────────────────────────────────────────────────────────
 const cfg     = useRuntimeConfig()
 const siteUrl = cfg.public.siteUrl
 const ogImage = `${siteUrl}/og-image.png`
-const _desc   = 'Смотрите аниме онлайн бесплатно на AniBox — онгоинги, популярное, новинки сезона. Удобный плеер, история просмотров.'
+const _desc = computed(
+  () =>
+    `Смотрите аниме онлайн бесплатно на ${siteName.value} — онгоинги, популярное, новинки сезона. Удобный плеер, история просмотров.`,
+)
 
 useSeoMeta({
-  title:              'AniBox — Смотрите аниме онлайн бесплатно',
+  title: computed(
+    () => `${siteName.value} — Смотрите аниме онлайн бесплатно`,
+  ),
   description:        _desc,
   keywords:           'аниме онлайн, смотреть аниме бесплатно, онгоинги, аниме 2025, аниме 2026, новинки аниме',
-  ogTitle:            'AniBox — Смотрите аниме онлайн',
+  ogTitle:            computed(() => `${siteName.value} — Смотрите аниме онлайн`),
   ogDescription:      _desc,
   ogUrl:              siteUrl,
   ogImage:            ogImage,
   ogType:             'website',
-  ogSiteName:         'AniBox',
+  ogSiteName:         siteName,
   twitterCard:        'summary_large_image',
-  twitterTitle:       'AniBox — Смотрите аниме онлайн',
+  twitterTitle:       computed(() => `${siteName.value} — Смотрите аниме онлайн`),
   twitterDescription: _desc,
   twitterImage:       ogImage,
   robots:             'index, follow, max-image-preview:large',
@@ -90,22 +80,40 @@ useSeoMeta({
 
 useHead({
   link: [{ rel: 'canonical', href: siteUrl }],
-  script: [{
-    type: 'application/ld+json',
-    innerHTML: JSON.stringify({
+  script: computed(() => {
+    const webSite = {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: 'AniBox',
+      name: siteName.value,
       url: siteUrl,
-      description: _desc,
-      inLanguage: 'ru',
+      description: _desc.value,
+      inLanguage: 'ru-RU',
+      publisher: { '@id': `${siteUrl}#organization` },
       potentialAction: {
         '@type': 'SearchAction',
         target: `${siteUrl}/search?q={search_term_string}`,
         'query-input': 'required name=search_term_string',
       },
-    }),
-  }],
+    }
+    const organization = {
+      '@context': 'https://schema.org',
+      '@id': `${siteUrl}#organization`,
+      '@type': 'Organization',
+      name: siteName.value,
+      url: siteUrl,
+      logo: `${siteUrl}/og-image.png`,
+    }
+    return [
+      {
+        type: 'application/ld+json' as const,
+        innerHTML: JSON.stringify(webSite),
+      },
+      {
+        type: 'application/ld+json' as const,
+        innerHTML: JSON.stringify(organization),
+      },
+    ]
+  }),
 })
 </script>
 
@@ -115,19 +123,17 @@ useHead({
     <!-- ── Hero Slider (full-width) ──────────────────────────────────── -->
     <HeroSlider :items="heroItems" :loading="metaLoading" />
 
-    <div class="max-w-screen-2xl mx-auto">
-
-      <!-- ── Genre quick-access row ─────────────────────────────────── -->
-      <div class="px-4 py-5 sm:px-6 sm:py-6">
-        <GenreRow />
-      </div>
+    <div class="mx-auto max-w-screen-2xl px-0 pt-4 sm:pt-6">
 
       <!-- ── Continue Watching (auth only) ──────────────────────────── -->
       <div
-        v-if="isAuthenticated && continueItems.length"
+        v-if="isAuthenticated && (continuePending || continueItems.length)"
         class="mb-8 px-4 sm:px-6"
       >
-        <ContinueWatchingBlock :items="continueItems" />
+        <ContinueWatchingRow
+          :items="continueItems"
+          :loading="continuePending"
+        />
       </div>
 
       <!-- ── Collections grid ────────────────────────────────────────── -->
@@ -144,7 +150,7 @@ useHead({
         <CollectionRow :collections="collections" />
       </div>
 
-      <!-- ── Sections: AniLibria fresh + Shikimori carousels ────────── -->
+      <!-- ── Подборки на главной ────────── -->
       <div class="space-y-8 pb-16">
 
         <!-- Skeleton while loading -->
@@ -167,7 +173,6 @@ useHead({
             :items="section.items"
             :loading="false"
             :see-all-href="sectionLink(section.id)"
-            :source-badge="sectionBadge(section.id)"
           />
 
           <!-- Nothing loaded fallback -->
@@ -177,7 +182,7 @@ useHead({
           >
             <UIcon name="lucide:wifi-off" class="h-12 w-12 text-white/20" />
             <p class="text-base text-white/40">Не удалось загрузить подборки</p>
-            <p class="text-sm text-white/25">Проверьте соединение с бэкендом</p>
+            <p class="text-sm text-white/25">Проверьте подключение к сети или зайдите позже</p>
             <NuxtLink
               to="/catalog"
               class="mt-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-400 transition-colors"
@@ -188,7 +193,7 @@ useHead({
         </template>
       </div>
 
-      <!-- ── News from Shikimori ─────────────────────────────────────── -->
+      <!-- ── Новости ─────────────────────────────────────── -->
       <div v-if="news.length" class="px-4 pb-8 sm:px-6">
         <div class="mb-4 flex items-center justify-between">
           <h2 class="text-base font-bold text-white">Новости аниме</h2>
@@ -198,7 +203,7 @@ useHead({
             rel="noopener noreferrer"
             class="text-xs text-slate-500 hover:text-slate-300 transition-colors"
           >
-            Shikimori →
+            Обсуждения ↗
           </a>
         </div>
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

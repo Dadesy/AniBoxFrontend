@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ScheduleRelease } from '~/types/metadata'
 import { navigateToCard } from '~/composables/useMetadata'
+import { useSwipe } from '~/composables/useSwipe'
 import {
   formatDayMonthRu,
   formatWeekdayShortRu,
@@ -25,18 +26,16 @@ const weekKeys = computed(() =>
   weekDateKeysFromMonday(props.mondayDateKey, props.timeZone),
 )
 
-let touchStartX = 0
+const swipeRoot = ref<HTMLElement | null>(null)
 
-function onTouchStart(e: TouchEvent) {
-  touchStartX = e.changedTouches[0]?.clientX ?? 0
-}
-
-function onTouchEnd(e: TouchEvent) {
-  const x = e.changedTouches[0]?.clientX ?? touchStartX
-  const dx = x - touchStartX
-  if (dx > 56) emit('swipePrev')
-  else if (dx < -56) emit('swipeNext')
-}
+useSwipe(
+  swipeRoot,
+  (dir) => {
+    if (dir === 'left') emit('swipeNext')
+    else if (dir === 'right') emit('swipePrev')
+  },
+  { axis: 'horizontal', threshold: 56, ratio: 1.15 },
+)
 
 function listFor(key: string): ScheduleRelease[] {
   return props.releasesByDate.get(key) ?? []
@@ -44,11 +43,7 @@ function listFor(key: string): ScheduleRelease[] {
 </script>
 
 <template>
-  <div
-    class="touch-pan-y"
-    @touchstart.passive="onTouchStart"
-    @touchend.passive="onTouchEnd"
-  >
+  <div ref="swipeRoot" class="touch-pan-y">
     <div
       class="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7"
       role="list"

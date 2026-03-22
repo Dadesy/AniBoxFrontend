@@ -27,7 +27,7 @@
           />
           <div class="min-w-0">
             <p class="maint-headline text-[13px] font-extrabold uppercase tracking-wide sm:text-sm">
-              Техработы · плеер Kodik
+              Техработы · плеер
             </p>
             <p class="maint-body text-xs leading-snug sm:text-[13px]">
               Просмотр может быть недоступен. Каталог и аккаунт работают в обычном режиме.
@@ -50,9 +50,12 @@
 
 <script setup lang="ts">
 const { isKodikDown } = useKodikStatus()
+const { bootOverlayRemoved } = useAppLoader()
 const dismissed = ref(false)
 
-const show = computed(() => isKodikDown.value && !dismissed.value)
+const show = computed(
+  () => bootOverlayRemoved.value && isKodikDown.value && !dismissed.value,
+)
 </script>
 
 <style scoped>

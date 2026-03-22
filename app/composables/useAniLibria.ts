@@ -11,7 +11,12 @@ export interface AniLibriaRelease {
   name: { main: string; english: string | null; alternative: string | null }
   alias: string
   year: number
-  poster: { src: string; preview: string; thumbnail: string; optimized: { src: string; thumbnail: string } }
+  poster: {
+    src: string
+    preview: string
+    thumbnail: string
+    optimized?: { src: string; thumbnail: string } | null
+  }
   type: { value: string; description: string }
   season: { value: string; description: string }
   genres: Array<{ id: number; name: string }>

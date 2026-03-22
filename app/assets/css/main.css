@@ -10,6 +10,12 @@
  * База: нейтральные чёрный / белый / серый (--cinema-*).
  * Зелёный только в --accent-* (логотип «Box», кнопки, активные пункты, фокус).
  */
+/* Bottom sheet / modal: блокировка фона (useBottomSheet) */
+html.bottom-sheet-lock body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 html {
   --cinema-base: #111113;
   --cinema-surface: #18181b;
@@ -326,20 +332,42 @@ html.light .glass-dark {
   }
 }
 
+/* Staggered entrance for card grids */
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .animate-fade-up {
-  animation: fade-up 0.5s ease both;
+  animation: fade-up 0.45s ease both;
 }
 .animate-fade-in {
   animation: fade-in 0.35s ease both;
 }
-.delay-100 {
-  animation-delay: 0.1s;
+.animate-card-in {
+  animation: card-in 0.4s ease both;
 }
-.delay-200 {
-  animation-delay: 0.2s;
-}
-.delay-300 {
-  animation-delay: 0.3s;
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+
+/* Respect prefers-reduced-motion for all animations */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-card-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 /* ── Skeleton shimmer — нейтральный ──────────────────────────────────────── */
@@ -362,6 +390,26 @@ html.light .skeleton-shine {
     rgba(0, 0, 0, 0.04) 75%
   );
   background-size: 200% 100%;
+}
+
+/* Stop shimmer for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shine {
+    animation: none;
+    background: rgba(255, 255, 255, 0.05);
+    background-size: unset;
+  }
+  html.light .skeleton-shine {
+    background: rgba(0, 0, 0, 0.06);
+    background-size: unset;
+  }
+}
+
+/* content-visibility: auto defers rendering cost for off-screen sections.
+   Use on home page sections below the first viewport. */
+.section-offscreen {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 360px;
 }
 
 /* ── Light theme: переопределения Tailwind ──────────────────────────────── */

@@ -3,7 +3,6 @@ import type { ScheduleViewMode } from '~/composables/useCalendarNavigation'
 
 defineProps<{
   timezone: string
-  sourceLabel: string
   filtersOpen: boolean
 }>()
 
@@ -46,10 +45,9 @@ const modes: { id: ScheduleViewMode; label: string }[] = [
           Расписание
         </h1>
         <p class="mt-2 max-w-xl text-sm leading-relaxed text-zinc-400">
-          Следите за выходом серий в вашей таймзоне. Данные обновляются с внешних расписаний;
-          время и день недели считаются как
-          <span class="font-mono text-zinc-300">{{ timezone }}</span>
-          · источник: {{ sourceLabel }}.
+          Следите за премьерами эпизодов в удобном календаре. Даты и время на странице
+          показываются в вашей таймзоне:
+          <span class="font-mono text-zinc-300">{{ timezone }}</span>.
         </p>
       </div>
 

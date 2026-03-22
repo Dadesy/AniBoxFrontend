@@ -2,7 +2,7 @@
  * composables/useCatalog.ts
  *
  * Manages catalog state: filters, page-based pagination, loading.
- * Backed by Shikimori via /metadata/catalog with Kodik availability enrichment.
+ * Каталог через API приложения (/metadata/catalog) с отметкой доступности в плеере.
  */
 
 import type { CatalogCard, CatalogFilters, CatalogPageResult, FilterOptions } from '~/types/content'
@@ -18,8 +18,19 @@ const EMPTY_OPTIONS: FilterOptions = {
   demographics: [],
 }
 
+function pickQueryParam(
+  q: Record<string, unknown>,
+  key: string,
+): string | undefined {
+  const v = q[key]
+  if (typeof v === 'string' && v.length) return v
+  if (Array.isArray(v) && typeof v[0] === 'string' && v[0].length) return v[0]
+  return undefined
+}
+
 export const useCatalog = () => {
   const apiUrl = useApiUrl()
+  const route = useRoute()
 
   const items = ref<CatalogCard[]>([])
   const page = ref(1)
@@ -109,6 +120,36 @@ export const useCatalog = () => {
     }
   }
 
+  /**
+   * Подставляет фильтры из ?query (например hasPlayer=true), иначе «пустой» каталог
+   * при сохранённой ссылке /catalog?hasPlayer=true без токена Kodik на бэкенде.
+   */
+  function hydrateFiltersFromRoute(): void {
+    const q = route.query as Record<string, unknown>
+    if (!q || Object.keys(q).length === 0) return
+
+    const assign = (key: keyof CatalogFilters, param: string) => {
+      const v = pickQueryParam(q, param)
+      if (v) (filters as Record<string, unknown>)[key] = v
+    }
+
+    assign('kind', 'kind')
+    assign('status', 'status')
+    assign('genre', 'genre')
+    assign('season', 'season')
+    assign('score', 'score')
+    assign('order', 'order')
+    assign('search', 'search')
+    assign('yearFrom', 'yearFrom')
+    assign('yearTo', 'yearTo')
+    assign('ageRating', 'ageRating')
+    assign('studio', 'studio')
+    assign('demographic', 'demographic')
+
+    const hp = pickQueryParam(q, 'hasPlayer')
+    if (hp === 'true' || hp === '1') filters.hasPlayer = true
+  }
+
   return {
     items,
     total,
@@ -125,5 +166,6 @@ export const useCatalog = () => {
     applyFilters,
     resetFilters,
     fetchFilterOptions,
+    hydrateFiltersFromRoute,
   }
 }

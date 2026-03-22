@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import type { NormalizedAnimeCard } from '~/types/metadata'
-import MetaCard from '~/components/home/MetaCard.vue'
+import MetaCard from './MetaCard.vue'
 
 const props = defineProps<{
-  title: string
-  items: NormalizedAnimeCard[]
-  loading?: boolean
-  seeAllHref?: string
-  cardSize?: 'sm' | 'md'
-  /** Badge shown next to title (e.g. 'AniLibria') */
+  title:        string
+  items:        NormalizedAnimeCard[]
+  loading?:     boolean
+  seeAllHref?:  string
+  cardSize?:    'sm' | 'md'
   sourceBadge?: string
 }>()
 
-const track = ref<HTMLDivElement | null>(null)
+// ── Scroll track ──────────────────────────────────────────────────────────────
+
+const track          = ref<HTMLDivElement | null>(null)
 const canScrollLeft  = ref(false)
 const canScrollRight = ref(true)
 
@@ -25,7 +26,8 @@ function updateScrollState() {
 
 function scroll(dir: 'left' | 'right') {
   if (!track.value) return
-  track.value.scrollBy({ left: dir === 'left' ? -(track.value.clientWidth * 0.7) : track.value.clientWidth * 0.7, behavior: 'smooth' })
+  const delta = track.value.clientWidth * 0.7
+  track.value.scrollBy({ left: dir === 'left' ? -delta : delta, behavior: 'smooth' })
 }
 
 onMounted(() => {
@@ -34,12 +36,42 @@ onMounted(() => {
 })
 onUnmounted(() => track.value?.removeEventListener('scroll', updateScrollState))
 
+// ── Section reveal via IntersectionObserver ───────────────────────────────────
+
+const sectionRef = ref<HTMLElement | null>(null)
+const revealed   = ref(false)
+
+onMounted(() => {
+  if (!sectionRef.value || typeof IntersectionObserver === 'undefined') {
+    revealed.value = true
+    return
+  }
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      if (entry?.isIntersecting) {
+        revealed.value = true
+        observer.disconnect()
+      }
+    },
+    { rootMargin: '0px 0px -40px 0px', threshold: 0.05 },
+  )
+  observer.observe(sectionRef.value)
+  onUnmounted(() => observer.disconnect())
+})
+
 const SKELETON_COUNT = 8
+const cardWidth = computed(() => props.cardSize === 'sm' ? 'w-[130px]' : 'w-[150px]')
 </script>
 
 <template>
-  <section class="relative">
-
+  <section
+    ref="sectionRef"
+    class="relative"
+    :class="[
+      'transition-[opacity,transform] duration-500 ease-out',
+      revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5',
+    ]"
+  >
     <!-- Section header -->
     <div class="mb-3 flex items-center justify-between px-4 sm:px-6">
       <div class="flex items-center gap-2">
@@ -53,11 +85,11 @@ const SKELETON_COUNT = 8
       </div>
 
       <div class="flex items-center gap-1.5">
-        <!-- Scroll arrows (desktop) -->
         <template v-if="!loading && items.length > 0">
           <button
             :disabled="!canScrollLeft"
             class="hidden sm:flex h-7 w-7 items-center justify-center rounded text-zinc-500 hover:text-zinc-200 hover:bg-white/6 transition-all disabled:opacity-25 disabled:cursor-default"
+            aria-label="Прокрутить влево"
             @click="scroll('left')"
           >
             <UIcon name="lucide:chevron-left" class="h-4 w-4" />
@@ -65,6 +97,7 @@ const SKELETON_COUNT = 8
           <button
             :disabled="!canScrollRight"
             class="hidden sm:flex h-7 w-7 items-center justify-center rounded text-zinc-500 hover:text-zinc-200 hover:bg-white/6 transition-all disabled:opacity-25 disabled:cursor-default"
+            aria-label="Прокрутить вправо"
             @click="scroll('right')"
           >
             <UIcon name="lucide:chevron-right" class="h-4 w-4" />
@@ -87,23 +120,21 @@ const SKELETON_COUNT = 8
       class="scrollbar-hide flex gap-2.5 overflow-x-auto px-4 pb-1 sm:px-6"
       style="scroll-snap-type: x mandatory;"
     >
-      <!-- Skeleton -->
+      <!-- Skeleton cards: staggered shimmer while loading -->
       <template v-if="loading">
         <div
           v-for="n in SKELETON_COUNT"
           :key="n"
-          class="flex-shrink-0"
-          :class="cardSize === 'sm' ? 'w-[130px]' : 'w-[150px]'"
+          :class="['flex-shrink-0', cardWidth]"
         >
-          <div class="aspect-[2/3] animate-pulse rounded bg-white/5" />
-          <div class="mt-2 space-y-1.5">
-            <div class="h-3 animate-pulse rounded bg-white/5" />
-            <div class="h-2 w-2/3 animate-pulse rounded bg-white/5" />
-          </div>
+          <div
+            class="aspect-[2/3] w-full rounded-xl bg-cinema-card skeleton-shine"
+            :style="{ animationDelay: `${(n - 1) * 80}ms` }"
+          />
         </div>
       </template>
 
-      <!-- Cards -->
+      <!-- Content cards -->
       <template v-else>
         <div
           v-for="card in items"
@@ -115,6 +146,5 @@ const SKELETON_COUNT = 8
         </div>
       </template>
     </div>
-
   </section>
 </template>

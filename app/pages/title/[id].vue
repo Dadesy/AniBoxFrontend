@@ -109,7 +109,7 @@
                   rel="noopener noreferrer"
                   class="glass flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-300 transition-all hover:bg-white/10 hover:text-white"
                 >
-                  Shikimori ↗
+                  О тайтле ↗
                 </a>
               </div>
             </div>
@@ -397,8 +397,11 @@ watch(
 const _siteConfig = useRuntimeConfig()
 const _siteUrl = _siteConfig.public.siteUrl
 
+const { siteName, pageTitle } = useSiteBranding()
 const _pageTitle = computed(() =>
-  detail.value ? `${detail.value.titleRu || detail.value.title} — AniBox` : 'AniBox',
+  detail.value
+    ? pageTitle(detail.value.titleRu || detail.value.title)
+    : siteName.value,
 )
 const _pageDesc = computed(() => detail.value?.description ?? '')
 const _pageImage = computed(() => detail.value?.posterUrl || `${_siteUrl}/og-image.png`)
@@ -435,7 +438,7 @@ useHead({
           description: detail.value.description,
           image: detail.value.posterUrl,
           url: _pageUrl.value,
-          inLanguage: 'ja',
+          inLanguage: 'ru-RU',
           ...(detail.value.year ? { datePublished: String(detail.value.year) } : {}),
           ...(detail.value.genres?.length ? { genre: detail.value.genres } : {}),
         }),

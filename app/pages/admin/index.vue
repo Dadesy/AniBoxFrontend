@@ -56,7 +56,7 @@ const { user } = useAuth();
 
 const adminSections = [
   { title: 'Пользователи', description: 'Управление аккаунтами', icon: 'lucide:users' },
-  { title: 'Аниме', description: 'Управление контентом (Kodik)', icon: 'lucide:tv' },
+  { title: 'Аниме', description: 'Управление каталогом и плеером', icon: 'lucide:tv' },
   { title: 'S3 Хранилище', description: 'Управление медиафайлами', icon: 'lucide:hard-drive' },
   { title: 'Роли', description: 'Назначение прав доступа', icon: 'lucide:shield-check' },
   { title: 'Логи', description: 'История входов и событий', icon: 'lucide:scroll-text' },

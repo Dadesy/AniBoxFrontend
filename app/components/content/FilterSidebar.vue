@@ -252,6 +252,7 @@
 </template>
 
 <script setup lang="ts">
+import FilterSection from '~/components/content/FilterSection.vue'
 import type { CatalogFilters, FilterOptions } from '~/types/content'
 
 const props = defineProps<{

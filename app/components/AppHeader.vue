@@ -9,8 +9,14 @@
       <!-- Left: Logo + Nav ─────────────────────────────────────── -->
       <div class="absolute left-0 top-0 h-full flex items-center pl-4 sm:pl-6 gap-1 z-10">
         <NuxtLink to="/" class="group mr-3 flex shrink-0 items-baseline gap-0">
-          <span class="logo-ani text-[20px] font-extrabold tracking-tight">Ani</span>
-          <span class="logo-box text-[20px] font-extrabold tracking-tight transition-opacity group-hover:opacity-90">Box</span>
+          <template v-if="logoAccent">
+            <span class="logo-ani text-[20px] font-extrabold tracking-tight">{{ logoPrimary }}</span>
+            <span class="logo-box text-[20px] font-extrabold tracking-tight transition-opacity group-hover:opacity-90">{{ logoAccent }}</span>
+          </template>
+          <span
+            v-else
+            class="logo-ani text-[20px] font-extrabold tracking-tight"
+          >{{ logoPrimary }}</span>
         </NuxtLink>
         <nav class="hidden sm:flex items-center gap-0.5">
           <NuxtLink
@@ -231,6 +237,19 @@ import type { HomePageData, NormalizedAnimeCard } from '~/types/metadata';
 const { user, isAuthenticated, isAdmin, logout } = useAuth();
 const router = useRouter();
 const apiUrl = useApiUrl();
+const { siteName } = useSiteBranding();
+
+const logoPrimary = computed(() => {
+  const n = siteName.value;
+  if (!n.length) return 'App';
+  const i = Math.ceil(n.length / 2);
+  return n.slice(0, i);
+});
+const logoAccent = computed(() => {
+  const n = siteName.value;
+  const i = Math.ceil(n.length / 2);
+  return n.length > 1 ? n.slice(i) : '';
+});
 
 // ── Scroll state ──────────────────────────────────────────────────────────
 const scrolled = ref(false);

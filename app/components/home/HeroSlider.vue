@@ -138,6 +138,7 @@ watch(current, () => { progressKey.value++ })
           <img
             :src="item.posterUrl"
             :alt="item.titleRu || item.title"
+            referrerpolicy="no-referrer"
             class="hero-bg-img absolute inset-0 h-full w-full object-cover"
           />
         </div>

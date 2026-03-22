@@ -124,6 +124,9 @@ import type { EpisodeProgress, HistoryResponse } from '~/types/content';
 
 definePageMeta({ middleware: 'auth' });
 
+const { pageTitle } = useSiteBranding();
+useHead({ title: pageTitle('История') });
+
 const apiUrl = useApiUrl();
 const { isAuthenticated } = useAuth();
 
@@ -180,5 +183,4 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
 }
 
-useHead({ title: 'История — AniBox' });
 </script>

@@ -325,11 +325,15 @@ onBeforeUnmount(() => {
   }
 })
 
+const { pageTitle } = useSiteBranding()
+
 useHead({
   title: computed(() =>
     detail.value
-      ? `${detail.value.title}${currentEpisode.value ? ` — Эп. ${currentEpisode.value}` : ''} — AniBox`
-      : 'Просмотр — AniBox',
+      ? pageTitle(
+          `${detail.value.title}${currentEpisode.value ? ` — Эп. ${currentEpisode.value}` : ''}`,
+        )
+      : pageTitle('Просмотр'),
   ),
 })
 </script>

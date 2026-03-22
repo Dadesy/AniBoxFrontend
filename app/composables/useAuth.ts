@@ -11,9 +11,10 @@ export interface AuthUser {
   role: 'USER' | 'ADMIN';
 }
 
-export const useAuth = () => {
-  const router = useRouter();
+/** Один общий запрос, если `fetchMe` дергают плагин и middleware одновременно */
+let fetchMeInFlight: Promise<void> | null = null;
 
+export const useAuth = () => {
   // ── Глобальный стейт ────────────────────────────────────────────────────
   const user = useState<AuthUser | null>('auth:user', () => null);
   const isInitialized = useState<boolean>('auth:initialized', () => false);
@@ -47,7 +48,8 @@ export const useAuth = () => {
       credentials: 'include',
     });
     user.value = data.user;
-    await router.push('/');
+    isInitialized.value = true;
+    await navigateTo('/');
   }
 
   /**
@@ -55,30 +57,47 @@ export const useAuth = () => {
    * При 401 пытается обновить токен через /auth/refresh, затем повторяет.
    */
   async function fetchMe(): Promise<void> {
-    try {
-      const data = await $fetch<AuthUser>(`${apiUrl}/auth/me`, {
-        credentials: 'include',
-      });
-      user.value = data;
-    } catch (error: unknown) {
-      if (isHttpError(error, 401)) {
-        // Пробуем обновить access token через refresh token
-        const refreshed = await tryRefresh();
-        if (refreshed) {
-          try {
-            const data = await $fetch<AuthUser>(`${apiUrl}/auth/me`, {
-              credentials: 'include',
-            });
-            user.value = data;
-            return;
-          } catch {
-            // refresh прошёл, но /me всё равно упало — сбрасываем
+    if (fetchMeInFlight) {
+      return fetchMeInFlight;
+    }
+
+    fetchMeInFlight = (async () => {
+      try {
+        const data = await $fetch<AuthUser>(`${apiUrl}/auth/me`, {
+          credentials: 'include',
+        });
+        user.value = data;
+      } catch (error: unknown) {
+        // Пробуем refresh при 401 и при любой другой ошибке (CORS, network, etc.).
+        // Если access_token не пришёл к бэку (cross-origin SameSite=Lax) — статус
+        // может быть любым; refresh с действующим токеном всё равно восстановит сессию.
+        const status = getHttpStatus(error);
+        const shouldTryRefresh = status === undefined || status === 0 || status === 401;
+
+        if (shouldTryRefresh) {
+          const refreshed = await tryRefresh();
+          if (refreshed) {
+            try {
+              const data = await $fetch<AuthUser>(`${apiUrl}/auth/me`, {
+                credentials: 'include',
+              });
+              user.value = data;
+              return;
+            } catch {
+              /* fallthrough → user.value = null */
+            }
           }
         }
+        user.value = null;
+      } finally {
+        isInitialized.value = true;
       }
-      user.value = null;
+    })();
+
+    try {
+      await fetchMeInFlight;
     } finally {
-      isInitialized.value = true;
+      fetchMeInFlight = null;
     }
   }
 
@@ -109,7 +128,7 @@ export const useAuth = () => {
       });
     } finally {
       user.value = null;
-      await router.push('/authentication');
+      await navigateTo('/authentication');
     }
   }
 
@@ -127,11 +146,19 @@ export const useAuth = () => {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function isHttpError(error: unknown, status: number): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'statusCode' in error &&
-    (error as { statusCode: number }).statusCode === status
-  );
+/** Статус HTTP из ошибки $fetch/ofetch/H3Error */
+function getHttpStatus(error: unknown): number | undefined {
+  if (typeof error !== 'object' || error === null) return undefined;
+  const e = error as Record<string, unknown>;
+  for (const key of ['statusCode', 'status'] as const) {
+    const v = e[key];
+    if (typeof v === 'number' && Number.isFinite(v)) return v;
+  }
+  const response = e.response;
+  if (response && typeof response === 'object') {
+    const r = response as Record<string, unknown>;
+    const s = r.status ?? r.statusCode;
+    if (typeof s === 'number' && Number.isFinite(s)) return s;
+  }
+  return undefined;
 }
