@@ -1,17 +1,12 @@
 <template>
   <!--
-    Используем padding-top ratio box вместо чистого aspect-ratio:
-    так карточка не схлопывается даже в браузерах/режимах, где aspect-ratio
-    с inline-style ведёт себя нестабильно.
+    aspect-ratio задаёт высоту блока от ширины родителя — в flex-ряду карусели
+    надёжнее, чем padding-top % (процент мог считаться не от той ширины → «сжатый» постер).
   -->
   <div
-    :class="['relative w-full overflow-hidden', wrapperClass]"
+    :class="['relative w-full min-h-0 overflow-hidden', wrapperClass]"
+    :style="{ aspectRatio: aspectRatioCss }"
   >
-    <div
-      aria-hidden="true"
-      :style="{ paddingTop: ratioPaddingTop }"
-    />
-
     <!-- Skeleton shimmer пока картинка грузится -->
     <div
       v-if="phase === 'loading'"
@@ -34,8 +29,12 @@
       браузер видит тег и начинает загрузку сразу, а не после гидрации.
       Переход в opacity-100 происходит через CSS transition после события load.
     -->
+    <!--
+      Не убираем <img> при phase === 'error': иначе в DOM нет ни src, ни зацепки в DevTools,
+      хотя URL был (часто CDN / Referer / разовый сбой). Плейсхолдер рисуем поверх.
+    -->
     <img
-      v-if="displaySrc && phase !== 'error'"
+      v-if="displaySrc"
       :key="`${displaySrc}|${loadAttempt}`"
       ref="imgRef"
       :src="displaySrc"
@@ -93,18 +92,17 @@ const displaySrc = computed(() => {
   return `${raw}${sep}_imgretry=${loadAttempt.value}`
 })
 
-const ratioPaddingTop = computed(() => {
+/** CSS aspect-ratio, напр. "2 / 3" */
+const aspectRatioCss = computed(() => {
   const raw = props.aspectRatio.trim()
   const match = raw.match(/^(\d+(?:\.\d+)?)\s*[:/]\s*(\d+(?:\.\d+)?)$/)
-  if (!match) return '150%'
+  if (!match) return '2 / 3'
 
-  const width = Number(match[1])
-  const height = Number(match[2])
-  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
-    return '150%'
-  }
+  const w = Number(match[1])
+  const h = Number(match[2])
+  if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) return '2 / 3'
 
-  return `${(height / width) * 100}%`
+  return `${w} / ${h}`
 })
 
 function onLoad() {

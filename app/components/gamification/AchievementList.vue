@@ -79,9 +79,10 @@ const sorted = computed(() => {
     <!-- ── Achievement grid ──────────────────────────────────────── -->
     <div v-if="achievements.length" class="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <AchievementCard
-        v-for="ach in sorted"
+        v-for="(ach, i) in sorted"
         :key="ach.key"
         :achievement="ach"
+        :index="i"
       />
     </div>
 

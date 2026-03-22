@@ -15,6 +15,23 @@ import AppLoader from './components/AppLoader.vue'
 import { whenBootBackendReady } from '~/composables/useKodikStatus'
 
 const { hide } = useAppLoader();
+const BOOT_READY_TIMEOUT_MS = 2_500
+
+async function waitForBootReady(): Promise<void> {
+  const ready = Symbol('ready')
+  const timedOut = Symbol('timedOut')
+
+  const result = await Promise.race([
+    whenBootBackendReady().then(() => ready),
+    new Promise<symbol>((resolve) => {
+      setTimeout(() => resolve(timedOut), BOOT_READY_TIMEOUT_MS)
+    }),
+  ])
+
+  if (result === timedOut && import.meta.dev) {
+    console.warn('[app] boot backend wait timed out, hiding loader anyway')
+  }
+}
 
 onMounted(async () => {
   try {
@@ -22,8 +39,8 @@ onMounted(async () => {
   } catch {
     /* ignore */
   }
-  // Первый ответ бэка (статус плеера) — иначе модалка Kodik / баннер мелькают до снятия лоадера
-  await whenBootBackendReady()
+  // Не держим экран чёрным бесконечно, если стартовый статус-пинг подвис.
+  await waitForBootReady()
   hide()
 });
 

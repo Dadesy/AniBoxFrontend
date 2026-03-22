@@ -1,6 +1,6 @@
 <template>
   <div
-    class="relative overflow-hidden rounded-[var(--app-radius-lg)] bg-cinema-card shadow-sm shadow-black/20 ring-1 ring-[var(--cinema-border)] transition-[transform,box-shadow,ring-color] duration-300 ease-out"
+    class="relative w-full min-w-0 overflow-hidden rounded-[var(--app-radius-lg)] bg-cinema-card shadow-sm shadow-black/20 ring-1 ring-[var(--cinema-border)] transition-[transform,box-shadow,ring-color] duration-300 ease-out"
     :class="
       !noPlay
         && 'group-hover:z-10 group-hover:scale-[1.03] group-hover:shadow-2xl group-hover:shadow-black/60 group-hover:ring-[var(--accent-green-border)]/35'
@@ -20,6 +20,7 @@
       :alt="displayTitle"
       aspect-ratio="2/3"
       :priority="priority"
+      referrerpolicy="no-referrer"
       :img-class="!noPlay ? 'group-hover:scale-105 transition-transform duration-500' : undefined"
     >
       <!-- ── Overlays (slot) ── -->
@@ -120,17 +121,37 @@ const props = defineProps<{
 
 function pickNonEmptyString(...values: unknown[]): string | null {
   for (const value of values) {
-    if (typeof value !== 'string') continue
-    const trimmed = value.trim()
-    if (trimmed.length > 0) return trimmed
+    if (value === null || value === undefined) continue
+    if (typeof value === 'string') {
+      const trimmed = value.trim()
+      if (trimmed.length > 0) return trimmed
+      continue
+    }
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      const trimmed = String(value).trim()
+      if (trimmed.length > 0) return trimmed
+    }
   }
   return null
+}
+
+/** Постер из API / кэша: camelCase, snake_case и прочие алиасы */
+function pickPosterFromCard(content: CatalogCard): string | null {
+  const c = content as Record<string, unknown>
+  return pickNonEmptyString(
+    c.posterUrl,
+    c.poster_url,
+    c.poster,
+    c.image,
+    c.imageUrl,
+    c.image_url,
+  )
 }
 
 const displayTitle = computed(() => pickNonEmptyString(props.content.titleRu, props.content.title) ?? 'Без названия')
 
 const posterSrc = computed(() => {
-  const raw = pickNonEmptyString(props.content.posterUrl)
+  const raw = pickPosterFromCard(props.content)
   if (!raw) return null
   const up = upgradeAnimePosterUrl(raw)
   return up || null

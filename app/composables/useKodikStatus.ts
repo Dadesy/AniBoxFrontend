@@ -1,4 +1,5 @@
 const POLL_INTERVAL_MS = 30_000
+const STATUS_FETCH_TIMEOUT_MS = 4_000
 
 /** Shared singleton state across the app */
 const isKodikDown = ref(false)
@@ -10,7 +11,9 @@ let firstFetchPromise: Promise<void> | null = null
 async function fetchStatus(): Promise<void> {
   try {
     const apiUrl = useApiUrl()
-    const data = await $fetch<{ available: boolean }>(`${apiUrl}/content/status`)
+    const data = await $fetch<{ available: boolean }>(`${apiUrl}/content/status`, {
+      timeout: STATUS_FETCH_TIMEOUT_MS,
+    })
     isKodikDown.value = !data.available
   } catch {
     // Ошибка сети / бэка — не считаем плеер принудительно недоступным

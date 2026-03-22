@@ -6,6 +6,9 @@ import AnimeCarousel from '~/components/home/AnimeCarousel.vue'
 import ContinueWatchingRow from '~/components/home/ContinueWatchingRow.vue'
 import CollectionRow from '~/components/home/CollectionRow.vue'
 import NewsCard from '~/components/content/NewsCard.vue'
+import MaintenanceBanner from '~/components/MaintenanceBanner.vue'
+import ReleaseHighlightBanner from '~/components/ReleaseHighlightBanner.vue'
+import { upgradeAnimePosterUrl } from '~/utils/poster-url-upgrade'
 
 // ── Auth ─────────────────────────────────────────────────────────────────
 const { isAuthenticated } = useAuth()
@@ -21,14 +24,20 @@ const { hero, sections, loading: metaLoading } = useHomeData()
 
 // ── Hero slider: hero card + up to 4 high-rated ongoings ────────────────
 // Prefer cards with externalId so navigation is instant (no resolve call)
+function hasRenderablePoster(card: NormalizedAnimeCard | null | undefined): card is NormalizedAnimeCard {
+  return !!upgradeAnimePosterUrl(card?.posterUrl)
+}
+
 const heroItems = computed<NormalizedAnimeCard[]>(() => {
   const items: NormalizedAnimeCard[] = []
-  if (hero.value) items.push(hero.value)
+  if (hasRenderablePoster(hero.value)) items.push(hero.value)
 
   const ongoings = sections.value.find((s) => s.id === 'ongoings')
   if (ongoings?.items) {
     for (const card of ongoings.items) {
       if (items.length >= 5) break
+      // Only include cards with a poster so every hero slide shows an image
+      if (!hasRenderablePoster(card)) continue
       if (!items.find((c) => c.id === card.id)) items.push(card)
     }
   }
@@ -123,6 +132,14 @@ useHead({
     <!-- ── Hero Slider (full-width) ──────────────────────────────────── -->
     <HeroSlider :items="heroItems" :loading="metaLoading" />
 
+    <!-- Техработы — карточка; тег релиза в шапке с lg — здесь только до lg -->
+    <div class="mx-auto max-w-screen-2xl px-4 pt-4 sm:px-6">
+      <MaintenanceBanner />
+      <div class="-mt-0.5 pt-1 lg:hidden">
+        <ReleaseHighlightBanner placement="page" />
+      </div>
+    </div>
+
     <div class="mx-auto max-w-screen-2xl px-0 pt-4 sm:pt-6">
 
       <!-- ── Continue Watching (auth only) ──────────────────────────── -->
@@ -142,9 +159,16 @@ useHead({
         class="mb-8 px-4 sm:px-6"
       >
         <div class="mb-4 flex items-center justify-between">
-          <h2 class="text-base font-bold text-white">Подборки</h2>
-          <NuxtLink to="/catalog" class="text-xs text-slate-500 hover:text-slate-300 transition-colors">
-            Весь каталог →
+          <div class="flex items-center gap-2.5">
+            <div class="h-[1.1em] w-[3px] shrink-0 rounded-full bg-emerald-500/65" aria-hidden="true" />
+            <h2 class="text-base font-bold text-white/90">Подборки</h2>
+          </div>
+          <NuxtLink
+            to="/catalog"
+            class="inline-flex items-center gap-0.5 rounded-full border border-white/[0.09] px-2.5 py-0.5 text-[11px] font-semibold text-white/35 transition-all hover:border-emerald-500/30 hover:bg-emerald-500/[0.07] hover:text-emerald-400"
+          >
+            Каталог
+            <UIcon name="lucide:chevron-right" class="size-3" />
           </NuxtLink>
         </div>
         <CollectionRow :collections="collections" />
@@ -196,14 +220,18 @@ useHead({
       <!-- ── Новости ─────────────────────────────────────── -->
       <div v-if="news.length" class="px-4 pb-8 sm:px-6">
         <div class="mb-4 flex items-center justify-between">
-          <h2 class="text-base font-bold text-white">Новости аниме</h2>
+          <div class="flex items-center gap-2.5">
+            <div class="h-[1.1em] w-[3px] shrink-0 rounded-full bg-emerald-500/65" aria-hidden="true" />
+            <h2 class="text-base font-bold text-white/90">Новости аниме</h2>
+          </div>
           <a
             href="https://shikimori.one/forum/animanga"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+            class="inline-flex items-center gap-0.5 rounded-full border border-white/[0.09] px-2.5 py-0.5 text-[11px] font-semibold text-white/35 transition-all hover:border-emerald-500/30 hover:bg-emerald-500/[0.07] hover:text-emerald-400"
           >
-            Обсуждения ↗
+            Обсуждения
+            <UIcon name="lucide:external-link" class="size-3" />
           </a>
         </div>
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

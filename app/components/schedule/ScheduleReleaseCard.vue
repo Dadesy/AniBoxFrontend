@@ -56,6 +56,7 @@ async function onDetail(e: Event) {
           :src="release.posterUrl"
           :alt="release.titleRu || release.title"
           loading="lazy"
+          referrerpolicy="no-referrer"
           class="h-full w-full object-cover transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-105"
         />
         <div v-else class="h-full w-full animate-pulse bg-white/10" />

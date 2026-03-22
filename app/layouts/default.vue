@@ -18,8 +18,6 @@
           : ''
       "
     >
-      <MaintenanceBanner />
-      <ReleaseHighlightBanner />
       <slot />
       <AppFooter />
     </main>
@@ -32,11 +30,6 @@
     <!-- Gamification toasts (level-up flash, achievements, EXP) -->
     <LevelUpToast />
 
-    <!-- Предупреждение о недоступности плеера (клиент + sessionStorage) -->
-    <ClientOnly>
-      <KodikUnavailableModal />
-    </ClientOnly>
-
     <!-- Cookie / analytics consent notice -->
     <ClientOnly>
       <CookieBanner />
@@ -48,9 +41,6 @@
 import AppHeader from '~/components/AppHeader.vue';
 import AppFooter from '~/components/AppFooter.vue';
 import BottomNav from '~/components/navigation/BottomNav.vue';
-import MaintenanceBanner from '~/components/MaintenanceBanner.vue';
-import ReleaseHighlightBanner from '~/components/ReleaseHighlightBanner.vue';
-import KodikUnavailableModal from '~/components/KodikUnavailableModal.vue';
 import CookieBanner from '~/components/CookieBanner.vue';
 import ToastContainer from '~/components/ui/ToastContainer.vue';
 import LevelUpToast from '~/components/gamification/LevelUpToast.vue';

@@ -34,6 +34,7 @@ const posterSrc = computed(() => {
       :src="posterSrc"
       :alt="displayTitle"
       aspect-ratio="2/3"
+      referrerpolicy="no-referrer"
       wrapper-class="overflow-hidden rounded-xl bg-white/5"
       img-class="transition-transform duration-500 ease-out will-change-transform group-hover:scale-110"
     >

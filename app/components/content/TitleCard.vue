@@ -3,7 +3,7 @@
   <NuxtLink
     v-if="content.externalId"
     :to="`/title/${encodeURIComponent(content.externalId)}`"
-    class="group block rounded-[var(--app-radius-lg)] transition-transform motion-reduce:transition-none active:scale-[0.98] motion-reduce:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-green)]/45"
+    class="group block w-full rounded-[var(--app-radius-lg)] transition-transform motion-reduce:transition-none active:scale-[0.98] motion-reduce:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-green)]/45"
     @pointerenter="onEnter"
     @pointerleave="onLeave"
   >

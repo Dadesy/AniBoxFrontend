@@ -80,9 +80,16 @@
         </div>
       </div>
 
-      <!-- Right: Actions ──────────────────────────────────────────── -->
-      <div class="absolute right-0 top-0 h-full flex items-center pr-4 sm:pr-6 gap-1 z-10">
-
+      <!-- Right: тег «обновление» в зазоре слева от кнопок (lg+); на меньших экранах — на главной под техработами -->
+      <div
+        class="absolute right-0 top-0 z-10 flex h-full items-center gap-2 pr-4 sm:pr-6"
+      >
+        <div
+          class="hidden min-w-0 max-w-[6.5rem] shrink leading-tight sm:max-w-[7.5rem] lg:flex lg:flex-col lg:items-end lg:justify-center xl:max-w-[9rem] xl:mr-0.5"
+        >
+          <ReleaseHighlightBanner placement="header" />
+        </div>
+        <div class="flex shrink-0 items-center gap-1">
         <button
           class="flex w-9 h-9 items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/6 transition-all"
           :disabled="randomLoading"
@@ -177,6 +184,7 @@
             Войти
           </NuxtLink>
         </template>
+        </div>
       </div>
     </div>
 
@@ -230,6 +238,7 @@
 import SearchDropdownContent from '~/components/header/SearchDropdownContent.vue';
 import ThemeToggle from '~/components/header/ThemeToggle.vue';
 import UserAvatar from '~/components/common/UserAvatar.vue';
+import ReleaseHighlightBanner from '~/components/ReleaseHighlightBanner.vue';
 import { navigateToCard } from '~/composables/useMetadata';
 import type { ContentCard } from '~/types/content';
 import type { HomePageData, NormalizedAnimeCard } from '~/types/metadata';

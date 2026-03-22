@@ -74,6 +74,13 @@ export interface ContentDetail extends ContentCard {
   seasons: Season[];
 }
 
+/** Альтернативный плеер (Кодик / AniLibria), если бэкенд смог сопоставить релиз */
+export interface WatchSourceOption {
+  provider: 'kodik' | 'anilibria';
+  externalId: string;
+  label: string;
+}
+
 export interface AnimeDetail extends ContentCard {
   allTranslations: Translation[];
   seasons: Season[];
@@ -82,6 +89,7 @@ export interface AnimeDetail extends ContentCard {
   titleRu?: string;
   /** When set — title served from AniLibria fallback. Link to watch on their site. */
   anilibriaUrl?: string;
+  watchSources?: WatchSourceOption[];
 }
 
 export interface AnimeEpisodesResponse {

@@ -4,29 +4,45 @@ import type { NormalizedAnimeCard } from '~/types/metadata'
 import { KIND_LABELS } from '~/types/metadata'
 import { navigateToCard } from '~/composables/useMetadata'
 import { upgradeAnimePosterUrl } from '~/utils/poster-url-upgrade'
+import { useParallax } from '~/composables/useParallax'
 
 const props = defineProps<{
   items: NormalizedAnimeCard[]
   loading?: boolean
 }>()
 
+interface HeroSlide {
+  item: NormalizedAnimeCard
+  posterSrc: string
+}
+
 function poster(item: NormalizedAnimeCard | null): string {
   if (!item?.posterUrl) return ''
   return upgradeAnimePosterUrl(item.posterUrl)
 }
+
+const slides = computed<HeroSlide[]>(() => {
+  const out: HeroSlide[] = []
+  for (const item of props.items) {
+    const posterSrc = poster(item)
+    if (!posterSrc) continue
+    out.push({ item, posterSrc })
+  }
+  return out
+})
 
 // ── Slide state ────────────────────────────────────────────────────────────
 const current   = ref(0)
 const navigating = ref(false)
 let timer: ReturnType<typeof setInterval> | null = null
 
-const SLIDE_DURATION = 6000 // ms
+const SLIDE_DURATION = 999999999 // ms
 
 function startTimer() {
   stopTimer()
-  if (props.items.length <= 1) return
+  if (slides.value.length <= 1) return
   timer = setInterval(() => {
-    current.value = (current.value + 1) % props.items.length
+    current.value = (current.value + 1) % slides.value.length
   }, SLIDE_DURATION)
 }
 
@@ -37,10 +53,18 @@ function stopTimer() {
 onMounted(startTimer)
 onUnmounted(stopTimer)
 
-watch(() => props.items.length, () => {
-  current.value = 0
-  startTimer()
-})
+watch(
+  () => slides.value.length,
+  (length) => {
+    if (!length) {
+      current.value = 0
+      stopTimer()
+      return
+    }
+    if (current.value >= length) current.value = 0
+    startTimer()
+  },
+)
 
 function goTo(idx: number) {
   current.value = idx
@@ -48,17 +72,21 @@ function goTo(idx: number) {
 }
 
 function next() {
-  current.value = (current.value + 1) % props.items.length
+  if (slides.value.length <= 1) return
+  current.value = (current.value + 1) % slides.value.length
   startTimer()
 }
 
 function prev() {
-  current.value = (current.value - 1 + props.items.length) % props.items.length
+  if (slides.value.length <= 1) return
+  current.value = (current.value - 1 + slides.value.length) % slides.value.length
   startTimer()
 }
 
 // ── Current card computed ──────────────────────────────────────────────────
-const card = computed(() => props.items[current.value] ?? null)
+const currentSlide = computed(() => slides.value[current.value] ?? null)
+const card = computed(() => currentSlide.value?.item ?? null)
+const cardPoster = computed(() => currentSlide.value?.posterSrc ?? '')
 
 const displayTitle = computed(() => card.value?.titleRu || card.value?.title || '')
 const kindLabel    = computed(() => KIND_LABELS[card.value?.kind ?? ''] ?? '')
@@ -74,7 +102,7 @@ const episodeLabel = computed(() => {
   return ''
 })
 
-const hasSharpPoster = computed(() => !!(card.value && poster(card.value)))
+const hasSharpPoster = computed(() => !!cardPoster.value)
 
 async function handleWatch() {
   if (!card.value || navigating.value) return
@@ -100,15 +128,16 @@ function onTouchEnd(e: TouchEvent) {
 
 // ── Progress bar key — resets animation on each slide change ───────────────
 const progressKey = ref(0)
+const { scrollY: heroScrollY } = useParallax()
 watch(current, () => { progressKey.value++ })
 </script>
 
 <template>
   <!-- ── Skeleton ──────────────────────────────────────────────────────── -->
   <div
-    v-if="loading || !items.length"
+    v-if="loading || !slides.length"
     class="hero-slider relative w-full overflow-hidden bg-[var(--cinema-base)]"
-    style="min-height: clamp(320px, 78vw, 520px);"
+    style="min-height: clamp(400px, 60vh, 640px);"
   >
     <div
       class="absolute inset-0 opacity-90"
@@ -134,7 +163,7 @@ watch(current, () => { progressKey.value++ })
   <div
     v-else
     class="hero-slider relative w-full overflow-hidden select-none bg-[var(--cinema-base)]"
-    style="min-height: clamp(320px, 78vw, 520px);"
+    style="min-height: clamp(400px, 60vh, 640px);"
     @touchstart.passive="onTouchStart"
     @touchend.passive="onTouchEnd"
   >
@@ -142,26 +171,28 @@ watch(current, () => { progressKey.value++ })
     <div class="pointer-events-none absolute inset-0 z-0">
       <TransitionGroup name="hero-bg">
         <div
-          v-for="(item, idx) in items"
+          v-for="(slide, idx) in slides"
           v-show="idx === current"
-          :key="item.id"
+          :key="slide.item.id"
           class="absolute inset-0"
         >
           <img
-            v-if="poster(item)"
-            :src="poster(item)"
+            :src="slide.posterSrc"
             alt=""
-            class="absolute inset-0 h-full w-full scale-110 object-cover opacity-[0.38] blur-3xl"
+            referrerpolicy="no-referrer"
+            class="absolute inset-0 h-full w-full object-cover opacity-[0.38] blur-3xl"
             aria-hidden="true"
+            :style="`transform: scale(1.2) translateY(${(heroScrollY * 0.18).toFixed(1)}px); will-change: transform;`"
           />
         </div>
       </TransitionGroup>
       <div
         class="absolute inset-0"
         style="background:
-          radial-gradient(ellipse 90% 70% at 92% 35%, rgba(74, 222, 128, 0.14), transparent 52%),
-          radial-gradient(ellipse 60% 50% at 10% 80%, rgba(34, 197, 94, 0.06), transparent 45%),
-          linear-gradient(105deg, rgba(10,10,14,0.96) 0%, rgba(17,17,19,0.88) 42%, rgba(12,18,16,0.72) 100%);"
+          radial-gradient(ellipse 110% 85% at 95% 28%, rgba(74, 222, 128, 0.20), transparent 55%),
+          radial-gradient(ellipse 70% 65% at 8% 75%, rgba(34, 197, 94, 0.09), transparent 50%),
+          radial-gradient(ellipse 55% 75% at 50% 130%, rgba(34, 197, 94, 0.07), transparent 60%),
+          linear-gradient(108deg, rgba(7,7,11,0.97) 0%, rgba(14,16,16,0.91) 40%, rgba(9,15,13,0.78) 100%);"
       />
       <div
         class="absolute inset-0"
@@ -171,6 +202,33 @@ watch(current, () => { progressKey.value++ })
       <div
         class="pointer-events-none absolute inset-0 z-[1]"
         style="background: radial-gradient(ellipse 85% 65% at 50% 100%, transparent 40%, rgba(0,0,0,0.45) 100%);"
+      />
+      <!-- SVG diamond pattern — subtle expressive texture (parallax × 0.30) -->
+      <div
+        class="pointer-events-none absolute inset-[-6%] opacity-[0.06]"
+        aria-hidden="true"
+        :style="{ transform: `translateY(${(heroScrollY * 0.30).toFixed(1)}px)` }"
+      >
+        <svg class="h-full w-full" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="hero-slider-diamonds" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+              <path d="M30 3 L57 30 L30 57 L3 30 Z" fill="none" stroke="white" stroke-width="0.8"/>
+              <circle cx="30" cy="30" r="1.5" fill="white" opacity="0.5"/>
+              <circle cx="0"  cy="0"  r="1"   fill="white" opacity="0.3"/>
+              <circle cx="60" cy="0"  r="1"   fill="white" opacity="0.3"/>
+              <circle cx="0"  cy="60" r="1"   fill="white" opacity="0.3"/>
+              <circle cx="60" cy="60" r="1"   fill="white" opacity="0.3"/>
+            </pattern>
+          </defs>
+          <rect width="112%" height="112%" fill="url(#hero-slider-diamonds)"/>
+        </svg>
+      </div>
+
+      <!-- Noise grain — cinematic depth texture -->
+      <div
+        class="pointer-events-none absolute inset-0 opacity-[0.025]"
+        aria-hidden="true"
+        style="background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC42NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIgb3BhY2l0eT0iMSIvPjwvc3ZnPg==);"
       />
     </div>
 
@@ -190,15 +248,24 @@ watch(current, () => { progressKey.value++ })
           <!-- Постер: на мобилке сверху (компакт), с sm — справа в ряду -->
           <div
             v-if="hasSharpPoster"
-            class="order-first flex shrink-0 justify-center sm:order-last sm:w-[min(200px,42vw)] sm:justify-end md:w-[212px] lg:w-[236px]"
+            class="order-first flex w-[38vw] min-w-[112px] max-w-[148px] shrink-0 justify-center sm:order-last sm:w-[220px] sm:min-w-[220px] sm:max-w-none sm:justify-end md:w-[235px] md:min-w-[235px] lg:w-[280px] lg:min-w-[280px]"
           >
-            <AppImage
-              :src="poster(card)"
-              :alt="displayTitle"
-              aspect-ratio="2/3"
-              :priority="true"
-              wrapper-class="w-[min(132px,36vw)] overflow-hidden rounded-[var(--app-radius-2xl)] shadow-2xl shadow-black/60 ring-1 ring-white/12 sm:w-full"
-            />
+            <div class="relative w-full">
+              <!-- Poster glow orb behind the card -->
+              <div
+                class="pointer-events-none absolute -inset-4 rounded-2xl blur-2xl opacity-25"
+                aria-hidden="true"
+                style="background: radial-gradient(ellipse at center, rgba(34,197,94,0.4) 0%, transparent 70%);"
+              />
+              <AppImage
+                :src="cardPoster"
+                :alt="displayTitle"
+                aspect-ratio="2/3"
+                :priority="true"
+                referrerpolicy="no-referrer"
+                wrapper-class="w-full overflow-hidden rounded-[var(--app-radius-2xl)] shadow-2xl shadow-black/70 ring-1 ring-white/14"
+              />
+            </div>
           </div>
 
           <div class="min-w-0 flex-1 space-y-2.5 sm:space-y-3 lg:pb-0.5">
@@ -276,7 +343,7 @@ watch(current, () => { progressKey.value++ })
 
     <!-- Навигация: на мобилке — выше прогресс-бара, не наезжает на текст -->
     <div
-      v-if="items.length > 1"
+      v-if="slides.length > 1"
       class="absolute bottom-11 left-0 right-0 z-30 flex justify-center px-4 sm:bottom-[4.5rem] sm:justify-end sm:px-8 lg:bottom-[5.25rem] lg:px-10"
     >
       <div class="flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-2 py-1 backdrop-blur-sm sm:bg-transparent sm:backdrop-blur-none sm:px-0 sm:py-0">
@@ -288,7 +355,7 @@ watch(current, () => { progressKey.value++ })
         >
           <UIcon name="lucide:chevron-left" class="size-4" />
         </button>
-        <span class="min-w-[2.75rem] text-center font-mono text-[11px] tabular-nums text-white/40 sm:text-xs">{{ current + 1 }}/{{ items.length }}</span>
+        <span class="min-w-[2.75rem] text-center font-mono text-[11px] tabular-nums text-white/40 sm:text-xs">{{ current + 1 }}/{{ slides.length }}</span>
         <button
           type="button"
           class="flex h-9 w-9 items-center justify-center rounded-full border border-white/18 text-white/55 transition-all hover:border-white/30 hover:bg-white/8 hover:text-white sm:h-8 sm:w-8"
@@ -301,11 +368,11 @@ watch(current, () => { progressKey.value++ })
     </div>
 
     <div
-      v-if="items.length > 1"
+      v-if="slides.length > 1"
       class="absolute bottom-0 left-0 right-0 z-30 flex gap-1.5 px-4 pb-3 pt-1 safe-area-pb sm:px-8 sm:pb-4 lg:px-10"
     >
       <button
-        v-for="(_, idx) in items"
+        v-for="(_, idx) in slides"
         :key="idx"
         type="button"
         class="relative h-1 flex-1 overflow-hidden rounded-full sm:h-[3px]"
@@ -317,7 +384,8 @@ watch(current, () => { progressKey.value++ })
         <span
           v-if="idx === current"
           :key="progressKey"
-          class="progress-fill absolute inset-y-0 left-0 rounded-full bg-emerald-400"
+          class="progress-fill absolute inset-y-0 left-0 rounded-full"
+          style="background: linear-gradient(90deg, #22c55e 0%, #4ade80 60%, #86efac 100%); box-shadow: 0 0 8px rgba(74,222,128,0.5);"
         />
       </button>
     </div>
@@ -343,11 +411,11 @@ watch(current, () => { progressKey.value++ })
 }
 .hero-slide-enter-from {
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(16px) scale(0.99);
 }
 .hero-slide-leave-to {
   opacity: 0;
-  transform: translateY(-6px);
+  transform: translateY(-10px);
 }
 
 @keyframes progress-fill {

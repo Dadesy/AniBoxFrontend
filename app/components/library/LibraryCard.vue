@@ -10,6 +10,7 @@
         :src="entry.posterUrl"
         :alt="displayTitle"
         loading="lazy"
+        referrerpolicy="no-referrer"
         class="lib-card__poster"
       />
       <div v-else class="lib-card__poster-fallback" />

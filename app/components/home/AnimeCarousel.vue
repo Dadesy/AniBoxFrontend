@@ -73,10 +73,12 @@ const cardWidth = computed(() => props.cardSize === 'sm' ? 'w-[138px]' : 'w-[162
     ]"
   >
     <!-- Section header -->
-    <div class="mb-3 flex items-end justify-between gap-3 px-4 sm:px-6">
-      <div class="flex min-w-0 items-center gap-2">
+    <div class="mb-3 flex items-center justify-between gap-3 px-4 sm:px-6">
+      <div class="flex min-w-0 items-center gap-2.5">
+        <!-- Left accent bar -->
+        <div class="h-[1.1em] w-[3px] shrink-0 rounded-full bg-emerald-500/65" aria-hidden="true" />
         <h2
-          class="truncate text-[clamp(0.9rem,2.4vw,1rem)] font-bold tracking-tight text-[var(--logo-text)]"
+          class="truncate text-[clamp(0.9rem,2.4vw,1.05rem)] font-bold tracking-tight text-white/90"
         >
           {{ title }}
         </h2>
@@ -92,7 +94,7 @@ const cardWidth = computed(() => props.cardSize === 'sm' ? 'w-[138px]' : 'w-[162
         <template v-if="!loading && items.length > 0">
           <button
             :disabled="!canScrollLeft"
-            class="hidden sm:flex h-7 w-7 items-center justify-center rounded text-zinc-500 hover:text-zinc-200 hover:bg-white/6 transition-all disabled:opacity-25 disabled:cursor-default"
+            class="hidden sm:flex h-7 w-7 items-center justify-center rounded-lg border border-white/[0.07] text-white/30 hover:border-white/15 hover:text-white/70 hover:bg-white/5 transition-all disabled:opacity-20 disabled:cursor-default"
             aria-label="Прокрутить влево"
             @click="scroll('left')"
           >
@@ -100,7 +102,7 @@ const cardWidth = computed(() => props.cardSize === 'sm' ? 'w-[138px]' : 'w-[162
           </button>
           <button
             :disabled="!canScrollRight"
-            class="hidden sm:flex h-7 w-7 items-center justify-center rounded text-zinc-500 hover:text-zinc-200 hover:bg-white/6 transition-all disabled:opacity-25 disabled:cursor-default"
+            class="hidden sm:flex h-7 w-7 items-center justify-center rounded-lg border border-white/[0.07] text-white/30 hover:border-white/15 hover:text-white/70 hover:bg-white/5 transition-all disabled:opacity-20 disabled:cursor-default"
             aria-label="Прокрутить вправо"
             @click="scroll('right')"
           >
@@ -111,9 +113,10 @@ const cardWidth = computed(() => props.cardSize === 'sm' ? 'w-[138px]' : 'w-[162
         <NuxtLink
           v-if="seeAllHref && !loading"
           :to="seeAllHref"
-          class="shrink-0 text-[12px] font-semibold text-[var(--ui-text-muted)] transition-colors hover:text-[var(--accent-green)]"
+          class="shrink-0 inline-flex items-center gap-0.5 rounded-full border border-white/[0.09] px-2.5 py-0.5 text-[11px] font-semibold text-white/35 transition-all duration-200 hover:border-emerald-500/30 hover:bg-emerald-500/[0.07] hover:text-emerald-400"
         >
-          Все →
+          Все
+          <UIcon name="lucide:chevron-right" class="size-3" />
         </NuxtLink>
       </div>
     </div>
@@ -129,7 +132,7 @@ const cardWidth = computed(() => props.cardSize === 'sm' ? 'w-[138px]' : 'w-[162
         <div
           v-for="n in SKELETON_COUNT"
           :key="n"
-          :class="['flex-shrink-0', cardWidth]"
+          :class="['shrink-0', cardWidth]"
         >
           <div
             class="aspect-[2/3] w-full rounded-[var(--app-radius-lg)] bg-cinema-card skeleton-shine"
@@ -143,7 +146,7 @@ const cardWidth = computed(() => props.cardSize === 'sm' ? 'w-[138px]' : 'w-[162
         <div
           v-for="card in items"
           :key="`${card.source}-${card.id}`"
-          class="flex-shrink-0"
+          class="shrink-0"
           style="scroll-snap-align: start;"
         >
           <MetaCard :card="card" :size="cardSize ?? 'md'" />

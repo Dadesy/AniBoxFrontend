@@ -1,16 +1,18 @@
 <template>
-  <section class="overflow-hidden rounded-[28px] border border-white/8 bg-black shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
-    <div class="flex items-center justify-between border-b border-white/6 px-4 py-3">
+  <section
+    class="overflow-hidden rounded-2xl border border-white/8 bg-black shadow-[0_12px_40px_rgba(0,0,0,0.35)] sm:rounded-[22px] md:shadow-[0_16px_48px_rgba(0,0,0,0.4)]"
+  >
+    <div class="flex items-center justify-between gap-3 border-b border-white/6 px-3 py-2 sm:px-4 sm:py-2.5">
       <div class="min-w-0">
-        <p class="truncate text-sm font-semibold text-white">{{ title || 'Плеер' }}</p>
-        <p v-if="metaLine" class="mt-0.5 text-xs text-slate-500">{{ metaLine }}</p>
+        <p class="truncate text-xs font-semibold text-white sm:text-sm">{{ title || 'Плеер' }}</p>
+        <p v-if="metaLine" class="mt-0.5 truncate text-[11px] text-slate-500 sm:text-xs">{{ metaLine }}</p>
       </div>
       <div
         v-if="loading"
-        class="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/5 px-3 py-1 text-xs text-slate-300"
+        class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/8 bg-white/5 px-2.5 py-1 text-[11px] text-slate-300 sm:gap-2 sm:px-3 sm:text-xs"
       >
-        <UIcon name="lucide:loader-2" class="size-3.5 animate-spin" />
-        Обновляем плеер
+        <UIcon name="lucide:loader-2" class="size-3 animate-spin sm:size-3.5" />
+        <span class="hidden sm:inline">Обновляем</span>
       </div>
     </div>
 
@@ -24,8 +26,10 @@
 
       <div v-else-if="playerUrl" class="w-full">
         <!-- HLS player for AniLibria (.m3u8 streams) -->
+        <!-- :key сбрасывает видео/HLS при смене URL или эпизода — иначе бывают «залипания» и пустой кадр -->
         <HlsPlayer
           v-if="isHls"
+          :key="hlsRemountKey"
           ref="playerRef"
           :src="playerUrl"
           :title="title"
@@ -101,6 +105,11 @@ const isHls = computed(() =>
     props.playerUrl!.includes('cache.libria.fun') ||
     props.playerUrl!.includes('libria.fun')
   ),
+)
+
+/** Полный remount плеера при смене потока (важно для AniLibria / hls.js) */
+const hlsRemountKey = computed(
+  () => `${props.playerUrl ?? ''}|s${props.season ?? ''}|e${props.episode ?? ''}`,
 )
 
 const metaLine = computed(() => {

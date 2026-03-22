@@ -98,11 +98,32 @@ const showNextPrompt = ref(false)
 let   hlsInstance: Hls | null = null
 let   startApplied = false
 
+/** Отменяет устаревший init при быстрой смене серии */
+let loadGeneration = 0
+/** Снятие слушателей нативного HLS + таймер */
+let nativeTeardown: (() => void) | null = null
+let loadWaitTimeoutId: ReturnType<typeof setTimeout> | null = null
+let hlsRecoverAttempts = 0
+
+const NATIVE_LOAD_MS = 28_000
+const HLS_RECOVER_MAX = 3
+
 // ── Styling ───────────────────────────────────────────────────────────────────
 
 const containerClass = computed(() =>
   props.aspect === 'cinema' ? 'aspect-[21/9]' : 'aspect-video',
 )
+
+function clearNativeWaiters(): void {
+  if (loadWaitTimeoutId !== null) {
+    clearTimeout(loadWaitTimeoutId)
+    loadWaitTimeoutId = null
+  }
+  if (nativeTeardown) {
+    nativeTeardown()
+    nativeTeardown = null
+  }
+}
 
 // ── HLS setup ─────────────────────────────────────────────────────────────────
 
@@ -110,14 +131,50 @@ async function initHls(src: string): Promise<void> {
   const video = videoRef.value
   if (!video || !src) return
 
+  const gen = ++loadGeneration
   destroyHls()
+  if (gen !== loadGeneration) return
+
   loading.value = true
   loadError.value = null
   startApplied = false
   showNextPrompt.value = false
+  hlsRecoverAttempts = 0
 
   // Native HLS (Safari / iOS)
   if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    let settled = false
+    const settle = (ok: boolean, errMsg?: string) => {
+      if (settled || gen !== loadGeneration) return
+      settled = true
+      clearNativeWaiters()
+      loading.value = false
+      if (ok) {
+        emit('ready')
+      } else if (errMsg) {
+        loadError.value = errMsg
+      }
+    }
+
+    const onCanPlay = () => settle(true)
+    const onLoadedData = () => settle(true)
+    const onError = () => settle(false, 'Не удалось загрузить поток (HLS)')
+
+    video.addEventListener('canplay', onCanPlay)
+    video.addEventListener('loadeddata', onLoadedData)
+    video.addEventListener('error', onError)
+
+    nativeTeardown = () => {
+      video.removeEventListener('canplay', onCanPlay)
+      video.removeEventListener('loadeddata', onLoadedData)
+      video.removeEventListener('error', onError)
+    }
+
+    loadWaitTimeoutId = setTimeout(() => {
+      if (gen !== loadGeneration) return
+      settle(false, 'Долгая загрузка — проверьте сеть или попробуйте ещё раз')
+    }, NATIVE_LOAD_MS)
+
     video.src = src
     video.load()
     return
@@ -127,6 +184,8 @@ async function initHls(src: string): Promise<void> {
   try {
     const HlsModule = await import('hls.js')
     const HlsCtor = HlsModule.default as typeof Hls
+
+    if (gen !== loadGeneration) return
 
     if (!HlsCtor.isSupported()) {
       loadError.value = 'Ваш браузер не поддерживает этот формат видео'
@@ -138,22 +197,46 @@ async function initHls(src: string): Promise<void> {
       enableWorker: true,
       lowLatencyMode: false,
       maxBufferLength: 60,
+      /** Реже ломается на строгих CDN (AniLibria) при cross-origin */
+      xhrSetup: (xhr) => {
+        xhr.withCredentials = false
+      },
     })
 
     hlsInstance.loadSource(src)
     hlsInstance.attachMedia(video)
 
     hlsInstance.on(HlsCtor.Events.MANIFEST_PARSED, () => {
+      if (gen !== loadGeneration) return
       emit('ready')
     })
 
     hlsInstance.on(HlsCtor.Events.ERROR, (_event, data) => {
-      if (data.fatal) {
-        loadError.value = 'Ошибка загрузки видео. Попробуйте позже.'
-        loading.value = false
+      if (gen !== loadGeneration || !hlsInstance) return
+
+      if (!data.fatal) return
+
+      if (hlsRecoverAttempts < HLS_RECOVER_MAX) {
+        hlsRecoverAttempts++
+        try {
+          if (data.type === HlsCtor.ErrorTypes.NETWORK_ERROR) {
+            hlsInstance.startLoad()
+            return
+          }
+          if (data.type === HlsCtor.ErrorTypes.MEDIA_ERROR) {
+            hlsInstance.recoverMediaError()
+            return
+          }
+        } catch {
+          /* fall through */
+        }
       }
+
+      loadError.value = 'Ошибка загрузки видео. Попробуйте снова или другую серию.'
+      loading.value = false
     })
   } catch (err) {
+    if (gen !== loadGeneration) return
     loadError.value = 'Не удалось загрузить плеер'
     loading.value = false
     console.warn('[HlsPlayer] init failed:', err)
@@ -161,12 +244,18 @@ async function initHls(src: string): Promise<void> {
 }
 
 function destroyHls(): void {
+  clearNativeWaiters()
   if (hlsInstance) {
     hlsInstance.destroy()
     hlsInstance = null
   }
   if (videoRef.value) {
-    videoRef.value.src = ''
+    videoRef.value.removeAttribute('src')
+    try {
+      videoRef.value.load()
+    } catch {
+      /* ignore */
+    }
   }
 }
 
@@ -245,6 +334,14 @@ defineExpose({ seek, play, pause, state })
 watch(() => props.src, (src) => {
   if (src) void initHls(src)
 }, { immediate: false })
+
+/** Сброс авто-seek при «С начала» / смене startTime с сервера */
+watch(
+  () => props.startTime,
+  (t) => {
+    if (t === undefined || t === null || t <= 5) startApplied = false
+  },
+)
 
 onMounted(() => {
   if (props.src) void initHls(props.src)

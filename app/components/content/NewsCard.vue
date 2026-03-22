@@ -3,7 +3,7 @@
     :href="item.url"
     target="_blank"
     rel="noopener noreferrer"
-    class="group flex flex-col gap-3 rounded-2xl border border-white/6 bg-cinema-card p-4 transition-all duration-200 hover:border-white/12 hover:bg-white/5 no-underline"
+    class="group flex flex-col gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4 transition-all duration-300 hover:border-white/[0.13] hover:bg-white/[0.04] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/35 no-underline"
   >
     <!-- Header: author + date -->
     <div class="flex items-center justify-between gap-2">

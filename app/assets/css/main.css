@@ -297,6 +297,36 @@ html.light body {
   display: none;
 }
 
+/**
+ * Список серий на /watch: на мобилке — горизонтально без полосы;
+ * с breakpoint sm — вертикальная прокрутка с тонкой полосой (длинные сезоны).
+ */
+.episode-picker-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.episode-picker-scroll::-webkit-scrollbar {
+  display: none;
+}
+@media (min-width: 640px) {
+  .episode-picker-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+    -ms-overflow-style: auto;
+  }
+  .episode-picker-scroll::-webkit-scrollbar {
+    display: block;
+    width: 6px;
+  }
+  .episode-picker-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+  }
+  .episode-picker-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
 /* ── Типографика: крупные заголовки (герой, лендинги) ─────────────────────── */
 .text-display-fluid {
   font-size: clamp(1.35rem, 4.2vw + 0.6rem, 2.35rem);

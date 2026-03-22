@@ -35,6 +35,7 @@ function handleClick() {
       :src="posterSrc"
       :alt="displayTitle"
       aspect-ratio="2/3"
+      referrerpolicy="no-referrer"
       wrapper-class="overflow-hidden rounded-lg bg-white/5"
       img-class="transition-transform duration-300 group-hover:scale-105"
     >

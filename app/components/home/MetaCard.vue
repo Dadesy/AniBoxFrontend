@@ -5,6 +5,7 @@ import TitleCard from '~/components/content/TitleCard.vue'
 const props = defineProps<{
   card: NormalizedAnimeCard
   size?: 'sm' | 'md'
+  priority?: boolean
 }>()
 
 /** Чуть шире карточка → больше пикселей под постер при том же соотношении 2:3 */
@@ -14,8 +15,8 @@ const widthClass = computed(() =>
 </script>
 
 <template>
-  <div :class="['flex-shrink-0', widthClass]">
+  <div :class="['shrink-0', widthClass]">
     <!-- CatalogCard — совместим по полям с NormalizedAnimeCard -->
-    <TitleCard :content="card" />
+    <TitleCard :content="card" :priority="priority" />
   </div>
 </template>

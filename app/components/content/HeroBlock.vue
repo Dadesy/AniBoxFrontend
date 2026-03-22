@@ -6,6 +6,7 @@
         v-if="item.posterUrl"
         :src="item.posterUrl"
         :alt="item.title"
+        referrerpolicy="no-referrer"
         class="w-full h-full object-cover object-top scale-105"
         style="filter: blur(2px) brightness(0.55) saturate(0.85)"
       />

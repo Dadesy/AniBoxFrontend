@@ -2,9 +2,14 @@
  * Синхронно с backend/src/common/poster-url-upgrade.ts:
  * preview/x96 → original для Shikimori CDN.
  */
-export function upgradeAnimePosterUrl(raw: string | null | undefined): string {
-  let u = (raw ?? '').trim()
+export function upgradeAnimePosterUrl(raw: string | number | null | undefined): string {
+  if (raw === null || raw === undefined) {
+    return ''
+  }
+  let u = String(raw).trim()
   if (!u) return ''
+
+  if (u.startsWith('//')) u = `https:${u}`
 
   const isShikimoriHost =
     /shikimori\.(one|me)(:\d+)?\//i.test(u) ||

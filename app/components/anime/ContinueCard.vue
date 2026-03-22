@@ -15,6 +15,7 @@
           :src="posterSrc"
           :alt="item.title"
           aspect-ratio="2/3"
+          referrerpolicy="no-referrer"
           wrapper-class="w-full"
           img-class="transition-transform duration-500 motion-reduce:transition-none sm:group-hover:scale-105"
         >

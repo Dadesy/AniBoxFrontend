@@ -28,6 +28,9 @@ export const useWatchProgress = () => {
   async function doSave(payload: SaveProgressPayload): Promise<void> {
     if (!isAuthenticated.value) return;
     if (payload.currentTime < MIN_SAVE_TIME) return;
+    // HLS до loadedmetadata шлёт NaN/Infinity → в JSON null → 400 от валидатора
+    if (!Number.isFinite(payload.currentTime) || !Number.isFinite(payload.duration)) return;
+    if (payload.currentTime < 0 || payload.duration < 0) return;
 
     isSaving.value = true;
     try {
@@ -84,6 +87,8 @@ export const useWatchProgress = () => {
     season?: number,
     episode?: number,
     translationId?: number,
+    /** Иначе GET /progress ищет только kodik — AniLibria не подхватывается */
+    sourceProvider?: string,
   ): Promise<EpisodeProgress | null> {
     if (!isAuthenticated.value) return null;
 
@@ -92,6 +97,7 @@ export const useWatchProgress = () => {
       if (season !== undefined) params.set('season', String(season));
       if (episode !== undefined) params.set('episode', String(episode));
       if (translationId !== undefined) params.set('translationId', String(translationId));
+      if (sourceProvider) params.set('sourceProvider', sourceProvider);
 
       const data = await $fetch<EpisodeProgress | null>(
         `${apiUrl}/progress/${encodeURIComponent(externalId)}?${params}`,

@@ -112,6 +112,28 @@
                   О тайтле ↗
                 </a>
               </div>
+
+              <div
+                v-if="detail.watchSources && detail.watchSources.length > 1"
+                class="flex flex-wrap items-center gap-2 pt-1"
+              >
+                <span class="text-xs font-medium uppercase tracking-wide text-slate-500">Плеер</span>
+                <div class="flex flex-wrap gap-2">
+                  <NuxtLink
+                    v-for="src in detail.watchSources"
+                    :key="src.externalId"
+                    :to="buildWatchUrlForSourceOption(src)"
+                    class="rounded-xl px-3 py-1.5 text-xs font-semibold transition-colors"
+                    :class="
+                      src.externalId === externalId
+                        ? 'bg-green-500 text-black'
+                        : 'border border-white/10 bg-white/6 text-slate-300 hover:bg-white/10 hover:text-white'
+                    "
+                  >
+                    {{ src.label }}
+                  </NuxtLink>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -163,7 +185,7 @@ import AddToListButton from '~/components/library/AddToListButton.vue'
 import { loadAnimePreferences, saveAnimePreferences } from '~/composables/useAnimePreferences'
 import { getAnimeById, getEpisodes, findSeason } from '~/services/animeService'
 import { useLibrary } from '~/composables/useLibrary'
-import type { AnimeDetail, EpisodeProgress, SeasonOption } from '~/types/content'
+import type { AnimeDetail, EpisodeProgress, SeasonOption, WatchSourceOption } from '~/types/content'
 
 // Viewing order relation priority: prequels first, then main, then sequels/OVAs
 const RELATION_ORDER: Record<string, number> = {
@@ -351,6 +373,17 @@ function buildWatchUrl(
   return query
     ? `/watch/${encodeURIComponent(externalId.value)}?${query}`
     : `/watch/${encodeURIComponent(externalId.value)}`
+}
+
+function buildWatchUrlForSourceOption(src: WatchSourceOption): string {
+  const params = new URLSearchParams()
+  if (selectedSeason.value) params.set('season', String(selectedSeason.value))
+  if (selectedEpisode.value) params.set('episode', String(selectedEpisode.value))
+  if (selectedTranslationId.value) params.set('translationId', String(selectedTranslationId.value))
+  const query = params.toString()
+  return query
+    ? `/watch/${encodeURIComponent(src.externalId)}?${query}`
+    : `/watch/${encodeURIComponent(src.externalId)}`
 }
 
 function handleWatch(): void {
